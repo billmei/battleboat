@@ -1,4 +1,4 @@
 battleboat
 ==========
 
-A simple battleship game in Java
+A simple battleship game in HTML5
