@@ -4,45 +4,160 @@
 	<meta charset="UTF-8">
 	<title>Battleboat!</title>
 	<style>
+	html, body {
+		width: 100%;
+		padding: 0;
+		margin: 0;
+	}
+	h1, h2, h3, h4, h5, h6, p {
+		font-family: Helvetica, Arial, sans-serif;
+	}
 	div {
 		padding: 0;
 		margin: 0;
+	}
+	.container {
+		text-align: center;
 	}
 	.grid {
 		height: 520px;
 		width: 520px;
 		border: 1px solid black;
+		margin: 0 auto;
 	}
-		.grid-row {
-			width: 520px;
-			height: 52px;
+		.grid-cell {
+			vertical-align: top; /*clears the vertical space between rows*/
+			height: 50px;
+			width: 50px;
+			border: 1px solid black;
+			display: inline-block;
 		}
-			.grid-cell {
-				height: 50px;
-				width: 50px;
-				display: inline-block;
-				border: 1px solid black;
+			.grid-cell:hover {
+				cursor: pointer;
 			}
-				.grid-cell:hover {
-					cursor: pointer;
-				}
-			.grid-ship {
-				background-color: gray;
-			}
-			.grid-miss {
-				background-color: blue;
-			}
-			.grid-hit {
-				background-color: red;
-			}
-			.grid-sunk {
-				background-color: black;
-			}
+		.grid-ship {
+			background-color: gray;
+		}
+		.grid-miss {
+			background-color: blue;
+		}
+		.grid-hit {
+			background-color: red;
+		}
+		.grid-sunk {
+			background-color: black;
+		}
 	</style>
 </head>
 <body>
-	<!-- Everything's on one line because of the whitespace bug that causes spacing between divs -->
-	<div class="grid"><div class="grid-row grid-row-0"><div class="grid-cell grid-cell-0-0"></div><div class="grid-cell grid-cell-0-1"></div><div class="grid-cell grid-cell-0-2"></div><div class="grid-cell grid-cell-0-3"></div><div class="grid-cell grid-cell-0-4"></div><div class="grid-cell grid-cell-0-5"></div><div class="grid-cell grid-cell-0-6"></div><div class="grid-cell grid-cell-0-7"></div><div class="grid-cell grid-cell-0-8"></div><div class="grid-cell grid-cell-0-9"></div></div><div class="grid-row grid-row-1"><div class="grid-cell grid-cell-1-0"></div><div class="grid-cell grid-cell-1-1"></div><div class="grid-cell grid-cell-1-2"></div><div class="grid-cell grid-cell-1-3"></div><div class="grid-cell grid-cell-1-4"></div><div class="grid-cell grid-cell-1-5"></div><div class="grid-cell grid-cell-1-6"></div><div class="grid-cell grid-cell-1-7"></div><div class="grid-cell grid-cell-1-8"></div><div class="grid-cell grid-cell-1-9"></div></div><div class="grid-row grid-row-2"><div class="grid-cell grid-cell-2-0"></div><div class="grid-cell grid-cell-2-1"></div><div class="grid-cell grid-cell-2-2"></div><div class="grid-cell grid-cell-2-3"></div><div class="grid-cell grid-cell-2-4"></div><div class="grid-cell grid-cell-2-5"></div><div class="grid-cell grid-cell-2-6"></div><div class="grid-cell grid-cell-2-7"></div><div class="grid-cell grid-cell-2-8"></div><div class="grid-cell grid-cell-2-9"></div></div><div class="grid-row grid-row-3"><div class="grid-cell grid-cell-3-0"></div><div class="grid-cell grid-cell-3-1"></div><div class="grid-cell grid-cell-3-2"></div><div class="grid-cell grid-cell-3-3"></div><div class="grid-cell grid-cell-3-4"></div><div class="grid-cell grid-cell-3-5"></div><div class="grid-cell grid-cell-3-6"></div><div class="grid-cell grid-cell-3-7"></div><div class="grid-cell grid-cell-3-8"></div><div class="grid-cell grid-cell-3-9"></div></div><div class="grid-row grid-row-4"><div class="grid-cell grid-cell-4-0"></div><div class="grid-cell grid-cell-4-1"></div><div class="grid-cell grid-cell-4-2"></div><div class="grid-cell grid-cell-4-3"></div><div class="grid-cell grid-cell-4-4"></div><div class="grid-cell grid-cell-4-5"></div><div class="grid-cell grid-cell-4-6"></div><div class="grid-cell grid-cell-4-7"></div><div class="grid-cell grid-cell-4-8"></div><div class="grid-cell grid-cell-4-9"></div></div><div class="grid-row grid-row-5"><div class="grid-cell grid-cell-5-0"></div><div class="grid-cell grid-cell-5-1"></div><div class="grid-cell grid-cell-5-2"></div><div class="grid-cell grid-cell-5-3"></div><div class="grid-cell grid-cell-5-4"></div><div class="grid-cell grid-cell-5-5"></div><div class="grid-cell grid-cell-5-6"></div><div class="grid-cell grid-cell-5-7"></div><div class="grid-cell grid-cell-5-8"></div><div class="grid-cell grid-cell-5-9"></div></div><div class="grid-row grid-row-6"><div class="grid-cell grid-cell-6-0"></div><div class="grid-cell grid-cell-6-1"></div><div class="grid-cell grid-cell-6-2"></div><div class="grid-cell grid-cell-6-3"></div><div class="grid-cell grid-cell-6-4"></div><div class="grid-cell grid-cell-6-5"></div><div class="grid-cell grid-cell-6-6"></div><div class="grid-cell grid-cell-6-7"></div><div class="grid-cell grid-cell-6-8"></div><div class="grid-cell grid-cell-6-9"></div></div><div class="grid-row grid-row-7"><div class="grid-cell grid-cell-7-0"></div><div class="grid-cell grid-cell-7-1"></div><div class="grid-cell grid-cell-7-2"></div><div class="grid-cell grid-cell-7-3"></div><div class="grid-cell grid-cell-7-4"></div><div class="grid-cell grid-cell-7-5"></div><div class="grid-cell grid-cell-7-6"></div><div class="grid-cell grid-cell-7-7"></div><div class="grid-cell grid-cell-7-8"></div><div class="grid-cell grid-cell-7-9"></div></div><div class="grid-row grid-row-8"><div class="grid-cell grid-cell-8-0"></div><div class="grid-cell grid-cell-8-1"></div><div class="grid-cell grid-cell-8-2"></div><div class="grid-cell grid-cell-8-3"></div><div class="grid-cell grid-cell-8-4"></div><div class="grid-cell grid-cell-8-5"></div><div class="grid-cell grid-cell-8-6"></div><div class="grid-cell grid-cell-8-7"></div><div class="grid-cell grid-cell-8-8"></div><div class="grid-cell grid-cell-8-9"></div></div><div class="grid-row grid-row-9"><div class="grid-cell grid-cell-9-0"></div><div class="grid-cell grid-cell-9-1"></div><div class="grid-cell grid-cell-9-2"></div><div class="grid-cell grid-cell-9-3"></div><div class="grid-cell grid-cell-9-4"></div><div class="grid-cell grid-cell-9-5"></div><div class="grid-cell grid-cell-9-6"></div><div class="grid-cell grid-cell-9-7"></div><div class="grid-cell grid-cell-9-8"></div><div class="grid-cell grid-cell-9-9"></div></div></div>
+<div class="container">
+	<h1>Battleboat!</h1>
+	<p>A simple HTML5 battleship clone</p>
+	<p>Click on the cells below to destroy the enemy ships:</p>
+	<!-- Whitespace needs to be commented out due to the bug that creates spaces between the divs -->
+	<div class="grid"><!--
+		--><div class="grid-cell grid-cell-0-0"></div><!--
+		--><div class="grid-cell grid-cell-0-1"></div><!--
+		--><div class="grid-cell grid-cell-0-2"></div><!--
+		--><div class="grid-cell grid-cell-0-3"></div><!--
+		--><div class="grid-cell grid-cell-0-4"></div><!--
+		--><div class="grid-cell grid-cell-0-5"></div><!--
+		--><div class="grid-cell grid-cell-0-6"></div><!--
+		--><div class="grid-cell grid-cell-0-7"></div><!--
+		--><div class="grid-cell grid-cell-0-8"></div><!--
+		--><div class="grid-cell grid-cell-0-9"></div><!--
+		--><div class="grid-cell grid-cell-1-0"></div><!--
+		--><div class="grid-cell grid-cell-1-1"></div><!--
+		--><div class="grid-cell grid-cell-1-2"></div><!--
+		--><div class="grid-cell grid-cell-1-3"></div><!--
+		--><div class="grid-cell grid-cell-1-4"></div><!--
+		--><div class="grid-cell grid-cell-1-5"></div><!--
+		--><div class="grid-cell grid-cell-1-6"></div><!--
+		--><div class="grid-cell grid-cell-1-7"></div><!--
+		--><div class="grid-cell grid-cell-1-8"></div><!--
+		--><div class="grid-cell grid-cell-1-9"></div><!--
+		--><div class="grid-cell grid-cell-2-0"></div><!--
+		--><div class="grid-cell grid-cell-2-1"></div><!--
+		--><div class="grid-cell grid-cell-2-2"></div><!--
+		--><div class="grid-cell grid-cell-2-3"></div><!--
+		--><div class="grid-cell grid-cell-2-4"></div><!--
+		--><div class="grid-cell grid-cell-2-5"></div><!--
+		--><div class="grid-cell grid-cell-2-6"></div><!--
+		--><div class="grid-cell grid-cell-2-7"></div><!--
+		--><div class="grid-cell grid-cell-2-8"></div><!--
+		--><div class="grid-cell grid-cell-2-9"></div><!--
+		--><div class="grid-cell grid-cell-3-0"></div><!--
+		--><div class="grid-cell grid-cell-3-1"></div><!--
+		--><div class="grid-cell grid-cell-3-2"></div><!--
+		--><div class="grid-cell grid-cell-3-3"></div><!--
+		--><div class="grid-cell grid-cell-3-4"></div><!--
+		--><div class="grid-cell grid-cell-3-5"></div><!--
+		--><div class="grid-cell grid-cell-3-6"></div><!--
+		--><div class="grid-cell grid-cell-3-7"></div><!--
+		--><div class="grid-cell grid-cell-3-8"></div><!--
+		--><div class="grid-cell grid-cell-3-9"></div><!--
+		--><div class="grid-cell grid-cell-4-0"></div><!--
+		--><div class="grid-cell grid-cell-4-1"></div><!--
+		--><div class="grid-cell grid-cell-4-2"></div><!--
+		--><div class="grid-cell grid-cell-4-3"></div><!--
+		--><div class="grid-cell grid-cell-4-4"></div><!--
+		--><div class="grid-cell grid-cell-4-5"></div><!--
+		--><div class="grid-cell grid-cell-4-6"></div><!--
+		--><div class="grid-cell grid-cell-4-7"></div><!--
+		--><div class="grid-cell grid-cell-4-8"></div><!--
+		--><div class="grid-cell grid-cell-4-9"></div><!--
+		--><div class="grid-cell grid-cell-5-0"></div><!--
+		--><div class="grid-cell grid-cell-5-1"></div><!--
+		--><div class="grid-cell grid-cell-5-2"></div><!--
+		--><div class="grid-cell grid-cell-5-3"></div><!--
+		--><div class="grid-cell grid-cell-5-4"></div><!--
+		--><div class="grid-cell grid-cell-5-5"></div><!--
+		--><div class="grid-cell grid-cell-5-6"></div><!--
+		--><div class="grid-cell grid-cell-5-7"></div><!--
+		--><div class="grid-cell grid-cell-5-8"></div><!--
+		--><div class="grid-cell grid-cell-5-9"></div><!--
+		--><div class="grid-cell grid-cell-6-0"></div><!--
+		--><div class="grid-cell grid-cell-6-1"></div><!--
+		--><div class="grid-cell grid-cell-6-2"></div><!--
+		--><div class="grid-cell grid-cell-6-3"></div><!--
+		--><div class="grid-cell grid-cell-6-4"></div><!--
+		--><div class="grid-cell grid-cell-6-5"></div><!--
+		--><div class="grid-cell grid-cell-6-6"></div><!--
+		--><div class="grid-cell grid-cell-6-7"></div><!--
+		--><div class="grid-cell grid-cell-6-8"></div><!--
+		--><div class="grid-cell grid-cell-6-9"></div><!--
+		--><div class="grid-cell grid-cell-7-0"></div><!--
+		--><div class="grid-cell grid-cell-7-1"></div><!--
+		--><div class="grid-cell grid-cell-7-2"></div><!--
+		--><div class="grid-cell grid-cell-7-3"></div><!--
+		--><div class="grid-cell grid-cell-7-4"></div><!--
+		--><div class="grid-cell grid-cell-7-5"></div><!--
+		--><div class="grid-cell grid-cell-7-6"></div><!--
+		--><div class="grid-cell grid-cell-7-7"></div><!--
+		--><div class="grid-cell grid-cell-7-8"></div><!--
+		--><div class="grid-cell grid-cell-7-9"></div><!--
+		--><div class="grid-cell grid-cell-8-0"></div><!--
+		--><div class="grid-cell grid-cell-8-1"></div><!--
+		--><div class="grid-cell grid-cell-8-2"></div><!--
+		--><div class="grid-cell grid-cell-8-3"></div><!--
+		--><div class="grid-cell grid-cell-8-4"></div><!--
+		--><div class="grid-cell grid-cell-8-5"></div><!--
+		--><div class="grid-cell grid-cell-8-6"></div><!--
+		--><div class="grid-cell grid-cell-8-7"></div><!--
+		--><div class="grid-cell grid-cell-8-8"></div><!--
+		--><div class="grid-cell grid-cell-8-9"></div><!--
+		--><div class="grid-cell grid-cell-9-0"></div><!--
+		--><div class="grid-cell grid-cell-9-1"></div><!--
+		--><div class="grid-cell grid-cell-9-2"></div><!--
+		--><div class="grid-cell grid-cell-9-3"></div><!--
+		--><div class="grid-cell grid-cell-9-4"></div><!--
+		--><div class="grid-cell grid-cell-9-5"></div><!--
+		--><div class="grid-cell grid-cell-9-6"></div><!--
+		--><div class="grid-cell grid-cell-9-7"></div><!--
+		--><div class="grid-cell grid-cell-9-8"></div><!--
+		--><div class="grid-cell grid-cell-9-9"></div><!--
+	--></div>
+</div>
 
 	<script>
 	// Battleship Clone
@@ -52,15 +167,29 @@
 	// This is one-player for now and you don't get to place your own ships yet but I'm going to update that later.
 	// Currently the computer just places ships at random and you have to guess where they are but I'll work on an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
 
-
-	// I know it's a global variable, but I couldn't think of how else to represent this and the ships available are a universal constant
+	// I know this isn't great OO code since I'm cheating a bit with a few global variables but that's why I'm applying to Hacker School, so I can learn how to have better code!
 	var availableships = ['carrier','battleship','destroyer','submarine','speedboat']
 
+	// Game manager object
 	function Game(size, numShips) {
 		this.size = size;
 		this.numShips = numShips;
 		this.initialize()
 	}
+	Game.prototype.shoot = function(e) {
+		// extract coordinates from event listener
+		var classString = e.target.getAttribute('class');
+		var x = classString.slice(-3,-2);
+		var y = classString.slice(-1);
+
+		// fire!
+		var gridCell = mygame.player0grid;
+		if (gridCell.containsShip(x,y)) {
+			gridCell.applyColor(x, y, 'hit');
+		} else {
+			gridCell.applyColor(x, y, 'miss');
+		}
+	};
 	Game.prototype.initialize = function() {
 		// You are player 0 and the computer is player 1
 		this.player0grid = new Grid(0, this.size);
@@ -68,8 +197,16 @@
 
 		this.player0fleet = new Fleet(0, this.numShips);
 		// this.player1fleet = new Fleet(1, this.numShips);
+
+		// add a click listener for the Grid.shoot() method for all cells
+		var gridContainer = document.querySelector('.grid');
+		var gridCells = gridContainer.childNodes;
+		for (var i = 0; i < gridCells.length; i++) {
+			gridCells[i].addEventListener('click', this.shoot, false);
+		}
 	}
 
+	// Grid object
 	function Grid(player, size) {
 		// Grid code:
 		// 0 = water (empty)
@@ -86,14 +223,28 @@
 			this.cells[x] = row;
 			for (var y = 0; y < this.size; y++) {
 				row.push(0)
-			};
-		};
-	}
+			}
+		}
+	};
 	Grid.prototype.applyColor = function(x, y, type) {
+		// type  (string) can be:
+		// ship
+		// miss
+		// hit
+		// sunk
 		var classes = ['grid-cell','grid-cell-'+x+'-'+y,'grid-'+type]
-		document.querySelector('.grid-cell-'+x+'-'+y).setAttribute('class', classes.join(" "))
-	}
+		document.querySelector('.grid-cell-'+x+'-'+y).setAttribute('class', classes.join(' '))
+	};
+	Grid.prototype.containsShip = function(x, y) {
+		// I'll write the real function later
+		if (1 === 1) {
+			return true;
+		} else {
+			return false;
+		}
+	};
 
+	// Fleet object
 	function Fleet(player, numShips) {
 		this.player = player;
 		this.numShips = numShips;
@@ -105,12 +256,10 @@
 			// loop over the ship types when numShips > availableships.length
 			var j = i % availableships.length;
 			this.ships.push(new Ship(availableships[j]));
-		};
-	}
-	Fleet.prototype.shoot = function(player, x, y) {
-		
-	}
+		}
+	};
 
+	// Ship object
 	function Ship(type) {
 		this.type = type;
 		switch(this.type) {
@@ -134,17 +283,16 @@
 	}
 	Ship.prototype.sink = function() {
 		this.sunk = true;
-	}
+	};
 	Ship.prototype.create = function(x, y, direction) {
 
-	}
+	};
 	Ship.prototype.damage = function(x, y) {
 
-	}
+	};
 
 
 	var mygame = new Game(10,5);
-	mygame.player0grid.applyColor(0,1,'hit')
 	</script>
 </body>
 </html>
