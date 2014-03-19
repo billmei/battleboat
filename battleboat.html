@@ -52,24 +52,24 @@
 	// This is one-player for now and you don't get to place your own ships yet but I'm going to update that later.
 	// Currently the computer just places ships at random and you have to guess where they are but I'll work on an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
 
-	
+
 	// I know it's a global variable, but I couldn't think of how else to represent this and the ships available are a universal constant
 	var availableships = ['carrier','battleship','destroyer','submarine','speedboat']
 
 	function Game(size, numShips) {
 		this.size = size;
 		this.numShips = numShips;
-
-		this.initialize = function() {
-			// You are player 0 and the computer is player 1
-			this.player0grid = new Grid(0, this.size);
-			this.player1grid = new Grid(1, this.size);
-
-			this.player0fleet = new Fleet(0, this.numShips);
-			this.player1fleet = new Fleet(1, this.numShips);
-		}
 		this.initialize()
 	}
+	Game.prototype.initialize = function() {
+		// You are player 0 and the computer is player 1
+		this.player0grid = new Grid(0, this.size);
+		// this.player1grid = new Grid(1, this.size);
+
+		this.player0fleet = new Fleet(0, this.numShips);
+		// this.player1fleet = new Fleet(1, this.numShips);
+	}
+
 	function Grid(player, size) {
 		// Grid code:
 		// 0 = water (empty)
@@ -78,16 +78,16 @@
 		// 3 = damaged ship (hit shot)
 		this.size = size;
 		this.cells = [];
-		this.initialize = function() {
-			for (var x = 0; x < this.size; x++) {
-				var row = [];
-				this.cells[x] = row;
-				for (var y = 0; y < this.size; y++) {
-					row.push(0)
-				};
-			};
-		}
 		this.initialize();
+	}
+	Grid.prototype.initialize = function() {
+		for (var x = 0; x < this.size; x++) {
+			var row = [];
+			this.cells[x] = row;
+			for (var y = 0; y < this.size; y++) {
+				row.push(0)
+			};
+		};
 	}
 	Grid.prototype.applyColor = function(x, y, type) {
 		var classes = ['grid-cell','grid-cell-'+x+'-'+y,'grid-'+type]
@@ -98,14 +98,14 @@
 		this.player = player;
 		this.numShips = numShips;
 		this.ships = [];
-		this.populate = function(numShips) {
-			for (var i = 0; i < this.numShips; i++) {
-				// loop over the ship types when numShips > availableships.length
-				var j = i % availableships.length;
-				this.ships.push(new Ship(availableships[j]));
-			};
-		}
 		this.populate();
+	}
+	Fleet.prototype.populate = function(numShips) {
+		for (var i = 0; i < this.numShips; i++) {
+			// loop over the ship types when numShips > availableships.length
+			var j = i % availableships.length;
+			this.ships.push(new Ship(availableships[j]));
+		};
 	}
 	Fleet.prototype.shoot = function(player, x, y) {
 		
