@@ -8,6 +8,7 @@ implies that you guys want everything in one file,
 so I'm putting everything into one file. -->
 	<title>Battleboat</title>
 	<style>
+	@import url(http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
 	html, body {
 		width: 100%;
 		padding: 0;
@@ -15,8 +16,16 @@ so I'm putting everything into one file. -->
 		background-color: #ddd;
 	}
 	h1, h2, h3, h4, h5, h6, p {
-		font-family: Helvetica, Arial, sans-serif;
+		font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+		color: #222;
 	}
+	a {
+		color: #222;
+		font-weight: bold;
+	}
+		a:hover {
+			text-decoration: none;
+		}
 	div {
 		padding: 0;
 		margin: 0;
@@ -72,8 +81,8 @@ so I'm putting everything into one file. -->
 <div class="container">
 	<h1>Battleboat</h1>
 	<p>A simple HTML5 battleship clone</p>
-	<p>Click on the cells below to fire at the enemy ships.
-	<br>You have <span class="ammo-counter">60</span> shots remaining.</p>
+	<p>Click on the cells below to fire at the enemy ships
+	<br>You have <span class="ammo-counter">60</span> shots remaining</p>
 	<!-- Whitespace needs to be commented out due to the browser bug that creates spaces between the divs -->
 	<div class="grid"><!--
 		--><div data-x="0" data-y="0" class="grid-cell grid-cell-0-0"></div><!--
@@ -177,6 +186,8 @@ so I'm putting everything into one file. -->
 		--><div data-x="9" data-y="8" class="grid-cell grid-cell-9-8"></div><!--
 		--><div data-x="9" data-y="9" class="grid-cell grid-cell-9-9"></div><!--
 	--></div>
+	<p>Created by <a href="http://www.kortaggio.com">Bill Mei</a>.</p>
+	<p>This project is open-source on GitHub: <a href="https://github.com/kortaggio/battleboat">https://github.com/kortaggio/battleboat</a></p>
 </div>
 
 <script>
