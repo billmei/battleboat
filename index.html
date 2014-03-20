@@ -24,7 +24,7 @@ so I'm putting everything into one file. -->
 	.container {
 		width: 510px;
 		text-align: center;
-		margin: 0 auto;
+		margin: 20px auto 100px auto;
 	}
 		/*.pull-left, .pull-right {
 			width: 50%;
@@ -205,9 +205,6 @@ so I'm putting everything into one file. -->
 		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
 		document.querySelector('.ammo-counter').textContent = ammoRemaining;
 
-		// check if all the ships have been sunk
-
-
 		// check if you've won or not
 		if (this.shotsTaken >= this.maxAllowedShots) {
 			alert('Yarr! You ran out of ammo. Try again.');
@@ -222,22 +219,27 @@ so I'm putting everything into one file. -->
 	};
 	Game.prototype.shoot = function(e) {
 		// extract coordinates from event listener
-		var x = e.target.getAttribute('data-x');
-		var y = e.target.getAttribute('data-y');
+		var x = parseInt(e.target.getAttribute('data-x'),10);
+		var y = parseInt(e.target.getAttribute('data-y'),10);
 
 		// fire!
-		var gridCell = mainGame.player0grid;
-		if (gridCell.containsDamagedShip(x, y)) {
+		var playerGrid = mainGame.player0grid;
+		var playerFleet = mainGame.player0fleet;
+		if (playerGrid.containsDamagedShip(x, y)) {
 			// Do nothing
-		} else if (gridCell.containsCannonball(x, y)) {
+		} else if (playerGrid.containsCannonball(x, y)) {
 			// Do nothing
-		} else if (gridCell.containsUndamagedShip(x, y)) {
-			gridCell.updateCell(x, y, 'hit');
+		} else if (playerGrid.containsUndamagedShip(x, y)) {
+			// damage the ship
+			playerFleet.findShipByLocation(x, y).damage().checkIfSunk();
+			// update the board/grid
+			playerGrid.updateCell(x, y, 'hit');
 			mainGame.updateShots();
 		} else {
-			gridCell.updateCell(x, y, 'miss');
+			playerGrid.updateCell(x, y, 'miss');
 			mainGame.updateShots();
 		}
+
 	};
 	Game.prototype.resetFogOfWar = function() {
 		for (var i = 0; i < this.size; i++) {
@@ -371,6 +373,31 @@ so I'm putting everything into one file. -->
 			}
 		}
 	};
+	Fleet.prototype.findShipByLocation = function(x, y) {
+		// Returns the ship object located at (x, y)
+		// If no ship exists at (x, y), this returns null.
+		for (var i = 0; i < this.fleetRoster.length; i++) {
+			var currentShip = this.fleetRoster[i];
+			if (currentShip.direction === 0) {
+				if (y === currentShip.yPosition &&
+					x >= currentShip.xPosition &&
+					x <= currentShip.xPosition + currentShip.shipLength) {
+					return currentShip;
+				} else {
+					continue;
+				}
+			} else {
+				if (x === currentShip.xPosition &&
+					y >= currentShip.yPosition &&
+					y <= currentShip.yPosition + currentShip.shipLength) {
+					return currentShip;
+				} else {
+					continue;
+				}
+			}
+			return null;
+		}
+	};
 	Fleet.prototype.allShipsSunk = function() {
 		for (var i = 0; i < this.fleetRoster.length; i++) {
 			// if any ship is not sunk, then the sentence "all ships are sunk" is false.
@@ -383,6 +410,7 @@ so I'm putting everything into one file. -->
 
 	// Ship object
 	function Ship(type, gameObject) {
+		this.damage = 0;
 		this.gameObject = gameObject;
 		this.type = type;
 		switch (this.type) {
@@ -404,10 +432,13 @@ so I'm putting everything into one file. -->
 			default:
 				this.shipLength = 1;
 		}
+		this.maxDamage = this.shipLength;
 		this.sunk = false;
 	}
 	Ship.prototype.create = function(x, y, direction) {
 		// This function assumes that you've already checked that the placement is legal
+		this.xPosition = x;
+		this.yPosition = y;
 		this.direction = direction;
 		// direction === 0 when the ship is facing north/south
 		// direction === 1 when the ship is facing east/west
@@ -451,12 +482,14 @@ so I'm putting everything into one file. -->
 			return y + this.shipLength <= this.gameObject.size;
 		}
 	};
-	Ship.prototype.damage = function(x, y) {
-
+	Ship.prototype.damage = function() {
+		this.damage++;
 	};
-	Ship.prototype.sink = function() {
-		this.sunk = true;
-	};
+	Ship.prototype.checkIfSunk = function() {
+		if (this.damage >= this.maxDamage) {
+			this.sunk = true;
+		}
+	}
 
 	var mainGame = new Game(10,5);
 })();
