@@ -367,7 +367,6 @@ so I'm putting everything into one file. -->
 				var randomDirection = Math.floor(2*Math.random());
 				if (this.fleetRoster[i].isLegal(randomX, randomY, randomDirection)) {
 					this.fleetRoster[i].create(randomX, randomY, randomDirection);
-					console.log('ship:'+this.fleetRoster[i].type+' | ('+randomX+','+randomY+') | direction:'+randomDirection+' | length:'+this.fleetRoster[i].shipLength);
 					illegalPlacement = false;
 				} else {
 					continue;
