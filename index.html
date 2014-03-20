@@ -60,18 +60,19 @@ so I'm putting everything into one file. -->
 		}
 			.grid-cell:hover {
 				cursor: pointer;
+				background-color: #7EB3DA;
 			}
+
 		.grid-ship {
-			/* TO DO: Make this gray depending on whether it's the user or the computer */
-			background-color: #66A3D2;
+			background-color: #C0C0C0;
 		}
-		.grid-miss {
+		.grid-miss, .grid-miss:hover {
 			background-color: white;
 		}
-		.grid-hit {
+		.grid-hit, .grid-hit:hover {
 			background-color: #F60018;
 		}
-		.grid-sunk {
+		.grid-sunk, .grid-sunk:hover {
 			background-color: black;
 		}
 	</style>
@@ -242,7 +243,6 @@ so I'm putting everything into one file. -->
 		} else if (playerGrid.containsCannonball(x, y)) {
 			// Do nothing
 		} else if (playerGrid.containsUndamagedShip(x, y)) {
-			// damage the ship
 			playerFleet.findShipByLocation(x, y).damageShip().checkIfSunk();
 			// update the board/grid
 			playerGrid.updateCell(x, y, 'hit');
@@ -483,7 +483,23 @@ so I'm putting everything into one file. -->
 	Ship.prototype.checkIfSunk = function() {
 		if (this.damage >= this.maxDamage) {
 			this.sunk = true;
+			return true;
+		} else {
+			return false;
 		}
+	};
+	Ship.prototype.getAllShipCells = function() {
+	// returns a nested array with all (x, y) coordinates of the ship:
+	// e.g.: [[x1, y1], [x2, y2], ... , [xn, yn]]
+		var resultArray = [];
+		for (var i = 0; i < this.shipLength; i++) {
+			if (this.direction === 0) {
+				resultArray.push([this.xPosition+i, this.yPosition]);
+			} else {
+				resultArray.push([this.xPosition, this.yPosition+i]);
+			}
+		}
+		return resultArray;
 	}
 	Ship.prototype.create = function(x, y, direction) {
 		// This function assumes that you've already checked that the placement is legal
@@ -492,7 +508,7 @@ so I'm putting everything into one file. -->
 		this.direction = direction;
 		// direction === 0 when the ship is facing north/south
 		// direction === 1 when the ship is facing east/west
-		if (direction === 0) {
+		if (this.direction === 0) {
 			for (var i = 0; i < this.shipLength; i++) {
 				this.gameObject.player0grid.cells[x+i][y] = 1;
 			}
