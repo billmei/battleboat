@@ -268,25 +268,6 @@ so I'm putting everything into one file. -->
 		document.querySelector('.ammo-counter').textContent = this.maxAllowedShots;
 	};
 
-	// Utility functions
-	Game.prototype.guessAll = function() {
-		var gridContainer = document.querySelector('.grid');
-		var gridCells = gridContainer.childNodes;
-		for (var i = 0; i < gridCells.length; i++) {
-			simulateClick(gridCells[i])
-		}
-	};
-	function simulateClick(control) {
-		if (document.all) {
-			control.click();
-		}
-		else {
-			var evObj = document.createEvent('MouseEvents');
-			evObj.initMouseEvent('click', true, true, window, 1, 12, 345, 7, 220, false, false, true, false, 0, null );
-			control.dispatchEvent(evObj);
-		}
-	};
-
 	// Grid object
 	function Grid(player, size) {
 		// Grid code:
@@ -431,9 +412,9 @@ so I'm putting everything into one file. -->
 		}
 	};
 	Ship.prototype.isLegal = function(x, y, direction) {
-		// check if the ship is within the grid
+		// first, check if the ship is within the grid...
 		if (this.withinBounds(x, y, direction)) {
-			// then check to make sure it doesn't collide with another ship
+			// ...then check to make sure it doesn't collide with another ship
 			if (direction === 0) {
 				for (var i = 0; i < this.shipLength; i++) {
 					if (this.gameObject.player0grid.cells[x+i][y] === 1) {
