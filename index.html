@@ -12,6 +12,7 @@ so I'm putting everything into one file. -->
 		width: 100%;
 		padding: 0;
 		margin: 0;
+		background-color: #ddd;
 	}
 	h1, h2, h3, h4, h5, h6, p {
 		font-family: Helvetica, Arial, sans-serif;
@@ -21,7 +22,7 @@ so I'm putting everything into one file. -->
 		margin: 0;
 	}
 	.container {
-		width: 520px;
+		width: 510px;
 		text-align: center;
 		margin: 0 auto;
 	}
@@ -35,30 +36,32 @@ so I'm putting everything into one file. -->
 			float: right;
 		}
 	.grid {
-		height: 520px;
-		width: 520px;
-		border: 1px solid black;
+		height: 510px;
+		width: 510px;
+		border-bottom: 1px solid #777;
+		border-right: 1px solid #777;
 	}
 		.grid-cell {
 			vertical-align: top; /*clears the vertical space between rows*/
 			height: 50px;
 			width: 50px;
-			border: 1px solid black;
+			border-top: 1px solid #777;
+			border-left: 1px solid #777;
 			display: inline-block;
-			background-color: blue;
+			background-color: #7AC0FA;
 		}
 			.grid-cell:hover {
 				cursor: pointer;
 			}
 		.grid-ship {
 			/* TO DO: Make this gray depending on whether it's the user or the computer */
-			background-color: blue;
+			background-color: #7AC0FA;
 		}
 		.grid-miss {
 			background-color: white;
 		}
 		.grid-hit {
-			background-color: red;
+			background-color: #E60000;
 		}
 		.grid-sunk {
 			background-color: black;
@@ -69,7 +72,8 @@ so I'm putting everything into one file. -->
 <div class="container">
 	<h1>Battleboat!</h1>
 	<p>A simple HTML5 battleship clone</p>
-	<p>Click on the cells below to fire at the enemy ships. You have <span class="ammo-counter">60</span> shots remaining.</p>
+	<p>Click on the cells below to fire at the enemy ships.
+	<br>You have <span class="ammo-counter">60</span> shots remaining.</p>
 	<!-- Whitespace needs to be commented out due to the browser bug that creates spaces between the divs -->
 	<div class="grid"><!--
 		--><div data-x="0" data-y="0" class="grid-cell grid-cell-0-0"></div><!--
