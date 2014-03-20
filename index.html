@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
+	<meta charset="UTF-8">
 <!-- Normally I would put the HTML, CSS, and JS
 in three separate files but the application question
 implies that you guys want everything in one file,
 so I'm putting everything into one file. -->
-	<meta charset="UTF-8">
-	<title>Battleboat!</title>
+	<title>Battleboat</title>
 	<style>
 	html, body {
 		width: 100%;
@@ -26,7 +26,7 @@ so I'm putting everything into one file. -->
 		text-align: center;
 		margin: 0 auto;
 	}
-		.pull-left, .pull-right {
+		/*.pull-left, .pull-right {
 			width: 50%;
 		}
 		.pull-left {
@@ -34,7 +34,7 @@ so I'm putting everything into one file. -->
 		}
 		.pull-right {
 			float: right;
-		}
+		}*/
 	.grid {
 		height: 510px;
 		width: 510px;
@@ -70,7 +70,7 @@ so I'm putting everything into one file. -->
 </head>
 <body>
 <div class="container">
-	<h1>Battleboat!</h1>
+	<h1>Battleboat</h1>
 	<p>A simple HTML5 battleship clone</p>
 	<p>Click on the cells below to fire at the enemy ships.
 	<br>You have <span class="ammo-counter">60</span> shots remaining.</p>
@@ -177,28 +177,18 @@ so I'm putting everything into one file. -->
 		--><div data-x="9" data-y="8" class="grid-cell grid-cell-9-8"></div><!--
 		--><div data-x="9" data-y="9" class="grid-cell grid-cell-9-9"></div><!--
 	--></div>
-	<div class="feedback">
-		<div class="pull-left">
-			<h2>Shots taken:</h2>
-			<div class="shots-counter">0</div>
-		</div>
-		<div class="pull-right">
-			<h2>Messages:</h2>
-			<div class="message-box"></div>
-		</div>
-	</div>
 </div>
 
 <script>
 (function() {
-	// Battleship Clone
+	// Battleboat
 	// Bill Mei, 2014
 	// MIT License
 
-	// This is one-player for now and you don't get to place your own ships yet but I'm going to update that later.
-	// Currently the computer just places ships at random and you have to guess where they are but I'm working on an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
+	// This is one-player for now which means you don't get to place your own ships yet but I'm going to update that later.
+	// Currently the computer just places ships at random and you have to guess where they are but eventually I want to implement an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
 
-	// I know this isn't great OO code since I'm cheating a with a few global variables but that's why I'm applying to Hacker School, so I can learn how to write better code!
+	// I know this isn't the greatest OO code since I didn't know how to avoid using a few global variables but that's why I'm applying to Hacker School, so I can learn how to write better code!
 	var availableShips = ['carrier','battleship','destroyer','submarine','speedboat']
 
 	// Game manager object
@@ -212,17 +202,22 @@ so I'm putting everything into one file. -->
 	}
 	Game.prototype.updateShots = function() {
 		this.shotsTaken++;
-		document.querySelector('.shots-counter').textContent = this.shotsTaken;
 		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
 		document.querySelector('.ammo-counter').textContent = ammoRemaining;
+
+		// check if all the ships have been sunk
+
 
 		// check if you've won or not
 		if (this.shotsTaken >= this.maxAllowedShots) {
 			alert('Yarr! You ran out of ammo. Try again.');
 			this.resetFogOfWar();
 			this.initialize();
-		} else if (this.gameWon === true) {
-			alert('Congratulations, you win!');
+		} else {
+			if (this.player0fleet.allShipsSunk()) {
+				this.gameWon = true;
+				alert('Congratulations, you win!');
+			}
 		}
 	};
 	Game.prototype.shoot = function(e) {
@@ -294,7 +289,7 @@ so I'm putting everything into one file. -->
 		}
 	};
 	Grid.prototype.updateCell = function(x, y, type) {
-		// type  (string) can be:
+		// Possible values for the parameter `type`  (string) can be:
 		// empty
 		// ship
 		// miss
@@ -352,7 +347,7 @@ so I'm putting everything into one file. -->
 		this.fleetRoster = [];
 		this.populate();
 	}
-	Fleet.prototype.populate = function(numShips) {
+	Fleet.prototype.populate = function() {
 		for (var i = 0; i < this.numShips; i++) {
 			// loop over the ship types when numShips > availableShips.length
 			var j = i % availableShips.length;
@@ -366,15 +361,24 @@ so I'm putting everything into one file. -->
 				var randomX = Math.floor(10*Math.random());
 				var randomY = Math.floor(10*Math.random());
 				var randomDirection = Math.floor(2*Math.random());
-				console.log('ship:'+this.fleetRoster[i].type+' ('+randomX+','+randomY+')'+' direction:'+randomDirection);
 				if (this.fleetRoster[i].isLegal(randomX, randomY, randomDirection)) {
 					this.fleetRoster[i].create(randomX, randomY, randomDirection);
+					console.log('ship:'+this.fleetRoster[i].type+' | ('+randomX+','+randomY+') | direction:'+randomDirection+' | length:'+this.fleetRoster[i].shipLength);
 					illegalPlacement = false;
 				} else {
 					continue;
 				}
 			}
 		}
+	};
+	Fleet.prototype.allShipsSunk = function() {
+		for (var i = 0; i < this.fleetRoster.length; i++) {
+			// if any ship is not sunk, then the sentence "all ships are sunk" is false.
+			if (this.fleetRoster[i].sunk === false) {
+				return false;
+			}
+		}
+		return true;
 	};
 
 	// Ship object
@@ -397,11 +401,13 @@ so I'm putting everything into one file. -->
 			case availableShips[4]:
 				this.shipLength = 2;
 				break;
+			default:
+				this.shipLength = 1;
 		}
 		this.sunk = false;
 	}
 	Ship.prototype.create = function(x, y, direction) {
-		// This function assumes that you've already checked that the placement is legal (within bounds)
+		// This function assumes that you've already checked that the placement is legal
 		this.direction = direction;
 		// direction === 0 when the ship is facing north/south
 		// direction === 1 when the ship is facing east/west
