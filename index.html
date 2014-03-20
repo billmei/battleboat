@@ -31,46 +31,42 @@ so I'm putting everything into one file. -->
 		margin: 0;
 	}
 	.container {
-		width: 510px;
+		width: 520px;
 		text-align: center;
 		margin: 20px auto 100px auto;
 	}
-		/*.pull-left, .pull-right {
-			width: 50%;
-		}
-		.pull-left {
-			float: left;
-		}
-		.pull-right {
-			float: right;
-		}*/
 	.grid {
-		height: 510px;
-		width: 510px;
-		border-bottom: 1px solid #777;
-		border-right: 1px solid #777;
+		padding: 5px;
+		height: 520px;
+		width: 520px;
+		background-color: #25567B;
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
 	}
 		.grid-cell {
 			vertical-align: top; /*clears the vertical space between rows*/
 			height: 50px;
 			width: 50px;
-			border-top: 1px solid #777;
-			border-left: 1px solid #777;
 			display: inline-block;
-			background-color: #7AC0FA;
+			background-color: #66A3D2;
+			margin: 1px;
+			-webkit-border-radius: 2px;
+			-moz-border-radius: 2px;
+			border-radius: 2px;
 		}
 			.grid-cell:hover {
 				cursor: pointer;
 			}
 		.grid-ship {
 			/* TO DO: Make this gray depending on whether it's the user or the computer */
-			background-color: #7AC0FA;
+			background-color: #66A3D2;
 		}
 		.grid-miss {
 			background-color: white;
 		}
 		.grid-hit {
-			background-color: #E60000;
+			background-color: #F60018;
 		}
 		.grid-sunk {
 			background-color: black;
