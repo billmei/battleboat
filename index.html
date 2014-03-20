@@ -214,6 +214,8 @@ so I'm putting everything into one file. -->
 			if (this.player0fleet.allShipsSunk()) {
 				this.gameWon = true;
 				alert('Congratulations, you win!');
+				this.resetFogOfWar();
+				this.initialize();
 			}
 		}
 	};
@@ -231,7 +233,7 @@ so I'm putting everything into one file. -->
 			// Do nothing
 		} else if (playerGrid.containsUndamagedShip(x, y)) {
 			// damage the ship
-			playerFleet.findShipByLocation(x, y).damage().checkIfSunk();
+			playerFleet.findShipByLocation(x, y).damageShip().checkIfSunk();
 			// update the board/grid
 			playerGrid.updateCell(x, y, 'hit');
 			mainGame.updateShots();
@@ -258,7 +260,7 @@ so I'm putting everything into one file. -->
 
 		// Reset game variables
 		this.shotsTaken = 0;
-
+		this.gameWon = false;
 		// add a click listener for the Grid.shoot() method for all cells
 		var gridContainer = document.querySelector('.grid');
 		var gridCells = gridContainer.childNodes;
@@ -435,23 +437,6 @@ so I'm putting everything into one file. -->
 		this.maxDamage = this.shipLength;
 		this.sunk = false;
 	}
-	Ship.prototype.create = function(x, y, direction) {
-		// This function assumes that you've already checked that the placement is legal
-		this.xPosition = x;
-		this.yPosition = y;
-		this.direction = direction;
-		// direction === 0 when the ship is facing north/south
-		// direction === 1 when the ship is facing east/west
-		if (direction === 0) {
-			for (var i = 0; i < this.shipLength; i++) {
-				this.gameObject.player0grid.cells[x+i][y] = 1;
-			}
-		} else {
-			for (var i = 0; i < this.shipLength; i++) {
-				this.gameObject.player0grid.cells[x][y+i] = 1;
-			}
-		}
-	};
 	Ship.prototype.isLegal = function(x, y, direction) {
 		// first, check if the ship is within the grid...
 		if (this.withinBounds(x, y, direction)) {
@@ -482,14 +467,32 @@ so I'm putting everything into one file. -->
 			return y + this.shipLength <= this.gameObject.size;
 		}
 	};
-	Ship.prototype.damage = function() {
+	Ship.prototype.damageShip = function() {
 		this.damage++;
+		return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 	};
 	Ship.prototype.checkIfSunk = function() {
 		if (this.damage >= this.maxDamage) {
 			this.sunk = true;
 		}
 	}
+	Ship.prototype.create = function(x, y, direction) {
+		// This function assumes that you've already checked that the placement is legal
+		this.xPosition = x;
+		this.yPosition = y;
+		this.direction = direction;
+		// direction === 0 when the ship is facing north/south
+		// direction === 1 when the ship is facing east/west
+		if (direction === 0) {
+			for (var i = 0; i < this.shipLength; i++) {
+				this.gameObject.player0grid.cells[x+i][y] = 1;
+			}
+		} else {
+			for (var i = 0; i < this.shipLength; i++) {
+				this.gameObject.player0grid.cells[x][y+i] = 1;
+			}
+		}
+	};
 
 	var mainGame = new Game(10,5);
 })();
