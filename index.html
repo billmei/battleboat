@@ -69,7 +69,7 @@ so I'm putting everything into one file. -->
 <div class="container">
 	<h1>Battleboat!</h1>
 	<p>A simple HTML5 battleship clone</p>
-	<p>Click on the cells below to destroy the enemy ships:</p>
+	<p>Click on the cells below to fire at the enemy ships. You have <span class="ammo-counter">60</span> shots remaining.</p>
 	<!-- Whitespace needs to be commented out due to the browser bug that creates spaces between the divs -->
 	<div class="grid"><!--
 		--><div data-x="0" data-y="0" class="grid-cell grid-cell-0-0"></div><!--
@@ -192,7 +192,7 @@ so I'm putting everything into one file. -->
 	// MIT License
 
 	// This is one-player for now and you don't get to place your own ships yet but I'm going to update that later.
-	// Currently the computer just places ships at random and you have to guess where they are but I'll work on an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
+	// Currently the computer just places ships at random and you have to guess where they are but I'm working on an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
 
 	// I know this isn't great OO code since I'm cheating a with a few global variables but that's why I'm applying to Hacker School, so I can learn how to write better code!
 	var availableShips = ['carrier','battleship','destroyer','submarine','speedboat']
@@ -201,13 +201,25 @@ so I'm putting everything into one file. -->
 	function Game(size, numShips) {
 		this.size = size;
 		this.numShips = numShips;
-		this.won = false;
+		this.gameWon = false;
 		this.shotsTaken = 0;
-		this.initialize()
+		this.maxAllowedShots = 60; // You lose if you take more shots than this
+		this.initialize();
 	}
 	Game.prototype.updateShots = function() {
 		this.shotsTaken++;
 		document.querySelector('.shots-counter').textContent = this.shotsTaken;
+		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
+		document.querySelector('.ammo-counter').textContent = ammoRemaining;
+
+		// check if you've won or not
+		if (this.shotsTaken >= this.maxAllowedShots) {
+			alert('Yarr! You ran out of ammo. Try again.');
+			this.resetFogOfWar();
+			this.initialize();
+		} else if (this.gameWon === true) {
+			alert('Congratulations, you win!');
+		}
 	};
 	Game.prototype.shoot = function(e) {
 		// extract coordinates from event listener
@@ -227,10 +239,13 @@ so I'm putting everything into one file. -->
 			gridCell.updateCell(x, y, 'miss');
 			mainGame.updateShots();
 		}
-
-		if (this.won) {
-			alert('Congratulations! You win!');
-		}
+	};
+	Game.prototype.resetFogOfWar = function() {
+		for (var i = 0; i < this.size; i++) {
+			for (var j = 0; j < this.size; j++) {
+				this.player0grid.updateCell(i, j, 'empty');
+			};
+		};
 	};
 	Game.prototype.initialize = function() {
 		// You are player 0 and the computer is player 1
@@ -240,6 +255,9 @@ so I'm putting everything into one file. -->
 		this.player0fleet = new Fleet(0, this.numShips, this);
 		// this.player1fleet = new Fleet(1, this.numShips, this);
 
+		// Reset game variables
+		this.shotsTaken = 0;
+
 		// add a click listener for the Grid.shoot() method for all cells
 		var gridContainer = document.querySelector('.grid');
 		var gridCells = gridContainer.childNodes;
@@ -247,8 +265,27 @@ so I'm putting everything into one file. -->
 			gridCells[i].addEventListener('click', this.shoot, false);
 		}
 		this.player0fleet.placeShipsRandomly();
+		document.querySelector('.ammo-counter').textContent = this.maxAllowedShots;
 	};
 
+	// Utility functions
+	Game.prototype.guessAll = function() {
+		var gridContainer = document.querySelector('.grid');
+		var gridCells = gridContainer.childNodes;
+		for (var i = 0; i < gridCells.length; i++) {
+			simulateClick(gridCells[i])
+		}
+	};
+	function simulateClick(control) {
+		if (document.all) {
+			control.click();
+		}
+		else {
+			var evObj = document.createEvent('MouseEvents');
+			evObj.initMouseEvent('click', true, true, window, 1, 12, 345, 7, 220, false, false, true, false, 0, null );
+			control.dispatchEvent(evObj);
+		}
+	};
 
 	// Grid object
 	function Grid(player, size) {
@@ -273,11 +310,15 @@ so I'm putting everything into one file. -->
 	};
 	Grid.prototype.updateCell = function(x, y, type) {
 		// type  (string) can be:
+		// empty
 		// ship
 		// miss
 		// hit
 		// sunk
 		switch (type) {
+			case 'empty':
+				this.cells[x][y] = 0;
+				break;
 			case 'ship':
 				this.cells[x][y] = 1;
 				break;
@@ -390,24 +431,23 @@ so I'm putting everything into one file. -->
 		}
 	};
 	Ship.prototype.isLegal = function(x, y, direction) {
-		// check if the ship is within the grid, then check to make sure it doesn't collide with another ship
+		// check if the ship is within the grid
 		if (this.withinBounds(x, y, direction)) {
+			// then check to make sure it doesn't collide with another ship
 			if (direction === 0) {
 				for (var i = 0; i < this.shipLength; i++) {
 					if (this.gameObject.player0grid.cells[x+i][y] === 1) {
-						return true;
-					} else {
 						return false;
 					}
 				}
+				return true;
 			} else {
 				for (var i = 0; i < this.shipLength; i++) {
 					if (this.gameObject.player0grid.cells[x][y+i] === 1) {
-						return true;
-					} else {
 						return false;
 					}
 				}
+				return true;
 			}
 		} else {
 			return false;
