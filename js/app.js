@@ -21,7 +21,7 @@
 		this.numShips = numShips;
 		this.gameWon = false;
 		this.shotsTaken = 0;
-		this.maxAllowedShots = 60; // You lose if you take more shots than this
+		this.maxAllowedShots = 100; // You lose if you take more shots than this
 		this.initialize();
 	}
 	Game.prototype.updateShots = function() {
@@ -30,17 +30,15 @@
 		document.querySelector('.ammo-counter').textContent = ammoRemaining;
 	};
 	Game.prototype.checkIfWon = function() {
-		if (this.shotsTaken >= this.maxAllowedShots) {
+		if (this.player0fleet.allShipsSunk()) {
+			this.gameWon = true;
+			alert('Congratulations, you win!');
+			this.resetFogOfWar();
+			this.initialize();
+		} else if (this.shotsTaken >= this.maxAllowedShots) {
 			alert('Yarr! You ran out of ammo. Try again.');
 			this.resetFogOfWar();
 			this.initialize();
-		} else {
-			if (this.player0fleet.allShipsSunk()) {
-				this.gameWon = true;
-				alert('Congratulations, you win!');
-				this.resetFogOfWar();
-				this.initialize();
-			}
 		}
 	};
 	Game.prototype.shoot = function(x, y) {

@@ -7,10 +7,10 @@ html, body {
 }
 h1, h2, h3, h4, h5, h6, p {
 	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
-	color: #222;
+	color: #222222;
 }
 a {
-	color: #222;
+	color: #222222;
 	font-weight: bold;
 }
 	a:hover {
@@ -57,11 +57,11 @@ div {
 		background-color: #C0C0C0;
 	}
 	.grid-miss, .grid-miss:hover {
-		background-color: white;
+		background-color: #EEEEEE;
 	}
 	.grid-hit, .grid-hit:hover {
 		background-color: #F60018;
 	}
 	.grid-sunk, .grid-sunk:hover {
-		background-color: black;
+		background-color: #222222;
 	}
