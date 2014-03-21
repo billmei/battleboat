@@ -243,7 +243,7 @@ so I'm putting everything into one file. -->
 		} else if (playerGrid.containsCannonball(x, y)) {
 			// Do nothing
 		} else if (playerGrid.containsUndamagedShip(x, y)) {
-			playerFleet.findShipByLocation(x, y).damageShip().checkIfSunk();
+			playerFleet.findShipByLocation(x, y).incrementDamage().checkIfSunk();
 			// update the board/grid
 			playerGrid.updateCell(x, y, 'hit');
 			mainGame.updateShots();
@@ -476,7 +476,7 @@ so I'm putting everything into one file. -->
 			return y + this.shipLength <= this.gameObject.size;
 		}
 	};
-	Ship.prototype.damageShip = function() {
+	Ship.prototype.incrementDamage = function() {
 		this.damage++;
 		return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 	};
