@@ -21,7 +21,7 @@
 		this.numShips = numShips;
 		this.gameWon = false;
 		this.shotsTaken = 0;
-		this.maxAllowedShots = 100; // You lose if you take more shots than this
+		this.maxAllowedShots = 60; // You lose if you take more shots than this
 		this.initialize();
 	}
 	Game.prototype.updateShots = function() {
