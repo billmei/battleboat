@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-<!-- Normally I would put the HTML, CSS, and JS
-in three separate files but the application question
-implies that you guys want everything in one file,
-so I'm putting everything into one file. -->
+<!--
+Normally I would put the HTML, CSS, and JS in three separate
+files but the application question implies that you guys want
+everything in one file, so I'm putting everything into one file.
+-->
 	<title>Battleboat</title>
 	<style>
 	@import url(http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
@@ -196,11 +197,17 @@ so I'm putting everything into one file. -->
 	// Bill Mei, 2014
 	// MIT License
 
-	// This is one-player for now which means you don't get to place your own ships yet but I'm going to update that later.
-	// Currently the computer just places ships at random and you have to guess where they are but eventually I want to implement an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
+	// This is one-player for now which means you don't get to place
+	// your own ships yet but I'm going to update that later.
+	// Currently the computer just places ships at random and you
+	// have to guess where they are but eventually I want to
+	// implement an AI based on the DataGenetics algorithm:
+	// http://www.datagenetics.com/blog/december32011/
 
-	// I know this isn't the greatest OO code since I didn't know how to avoid using a few global variables but that's why I'm applying to Hacker School, so I can learn how to write better code!
-	var availableShips = ['carrier','battleship','destroyer','submarine','speedboat'];
+	// I know this isn't the greatest OO code since I didn't know how to
+	// avoid using a few global variables but that's why I'm applying to
+	// Hacker School, so I can learn how to write better code!
+	var availableShips = ['carrier', 'battleship', 'destroyer', 'submarine', 'speedboat'];
 
 	// Game manager object
 	function Game(size, numShips) {
@@ -230,25 +237,32 @@ so I'm putting everything into one file. -->
 			}
 		}
 	};
-	Game.prototype.shoot = function(e) {
-		// extract coordinates from event listener
-		var x = parseInt(e.target.getAttribute('data-x'),10);
-		var y = parseInt(e.target.getAttribute('data-y'),10);
+	Game.prototype.shoot = function(x, y) {
+		var playerGrid = this.player0grid;
+		var playerFleet = this.player0fleet;
 
-		// fire!
-		var playerGrid = mainGame.player0grid;
-		var playerFleet = mainGame.player0fleet;
-		if (playerGrid.containsUndamagedShip(x, y)) {
-			playerFleet.findShipByLocation(x, y).incrementDamage().checkIfSunk();
+		if (playerGrid.containsDamagedShip(x, y)) {
+			// Do nothing
+		} else if (playerGrid.containsCannonball(x, y)) {
+			// Do nothing
+		} else if (playerGrid.containsUndamagedShip(x, y)) {
+			playerFleet.findShipByLocation(x, y).incrementDamage();
 			// update the board/grid
 			playerGrid.updateCell(x, y, 'hit');
-			mainGame.updateShots();
+			this.updateShots();
 		} else {
 			playerGrid.updateCell(x, y, 'miss');
-			mainGame.updateShots();
+			this.updateShots();
 		}
 
 	};
+	Game.prototype.clickListener = function(e) {
+		// extract coordinates from event listener
+		var x = parseInt(e.target.getAttribute('data-x'), 10);
+		var y = parseInt(e.target.getAttribute('data-y'), 10);
+
+		mainGame.shoot(x, y);
+	}
 	Game.prototype.resetFogOfWar = function() {
 		for (var i = 0; i < this.size; i++) {
 			for (var j = 0; j < this.size; j++) {
@@ -271,7 +285,7 @@ so I'm putting everything into one file. -->
 		var gridContainer = document.querySelector('.grid');
 		var gridCells = gridContainer.childNodes;
 		for (var i = 0; i < gridCells.length; i++) {
-			gridCells[i].addEventListener('click', this.shoot, false);
+			gridCells[i].addEventListener('click', this.clickListener, false);
 		}
 		this.player0fleet.placeShipsRandomly();
 		document.querySelector('.ammo-counter').textContent = this.maxAllowedShots;
@@ -325,8 +339,8 @@ so I'm putting everything into one file. -->
 				this.cells[x][y] = 0;
 				break;
 		}
-		var classes = ['grid-cell','grid-cell-'+x+'-'+y,'grid-'+type]
-		document.querySelector('.grid-cell-'+x+'-'+y).setAttribute('class', classes.join(' '))
+		var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type]
+		document.querySelector('.grid-cell-' + x + '-' + y).setAttribute('class', classes.join(' '))
 	};
 	Grid.prototype.containsUndamagedShip = function(x, y) {
 		if (this.cells[x][y] === 1) {
@@ -408,7 +422,7 @@ so I'm putting everything into one file. -->
 	};
 	Fleet.prototype.allShipsSunk = function() {
 		for (var i = 0; i < this.fleetRoster.length; i++) {
-			// if any ship is not sunk, then the sentence "all ships are sunk" is false.
+			// If one or more ships are not sunk, then the sentence "all ships are sunk" is false.
 			if (this.fleetRoster[i].sunk === false) {
 				return false;
 			}
@@ -448,21 +462,18 @@ so I'm putting everything into one file. -->
 		// first, check if the ship is within the grid...
 		if (this.withinBounds(x, y, direction)) {
 			// ...then check to make sure it doesn't collide with another ship
-			if (direction === 0) {
-				for (var i = 0; i < this.shipLength; i++) {
-					if (this.gameObject.player0grid.cells[x+i][y] === 1) {
+			for (var i = 0; i < this.shipLength; i++) {
+				if (direction === 0) {
+					if (this.gameObject.player0grid.cells[x + i][y] === 1) {
+						return false;
+					}
+				} else {
+					if (this.gameObject.player0grid.cells[x][y + i] === 1) {
 						return false;
 					}
 				}
-				return true;
-			} else {
-				for (var j = 0; j < this.shipLength; j++) {
-					if (this.gameObject.player0grid.cells[x][y+j] === 1) {
-						return false;
-					}
-				}
-				return true;
 			}
+			return true;
 		} else {
 			return false;
 		}
@@ -476,28 +487,31 @@ so I'm putting everything into one file. -->
 	};
 	Ship.prototype.incrementDamage = function() {
 		this.damage++;
+		if (this.isSunk()) {
+			this.sunk = true;
+		}
 		return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 	};
-	Ship.prototype.checkIfSunk = function() {
-		if (this.damage >= this.maxDamage) {
-			this.sunk = true;
-			return true;
-		} else {
-			return false;
-		}
+	Ship.prototype.isSunk = function() {
+		return this.damage >= this.maxDamage;
 	};
 	Ship.prototype.getAllShipCells = function() {
-	// returns a nested array with all (x, y) coordinates of the ship:
-	// e.g.: [[x1, y1], [x2, y2], ... , [xn, yn]]
-		var resultArray = [];
+	// returns a zero-indexed JSON with all (x, y) coordinates of the ship:
+	// e.g.
+	// {
+	// 	0:{'x':2, 'y':2},
+	// 	1:{'x':3, 'y':2},
+	// 	2:{'x':4, 'y':2}
+	// }
+		var resultObject = {};
 		for (var i = 0; i < this.shipLength; i++) {
 			if (this.direction === 0) {
-				resultArray.push([this.xPosition+i, this.yPosition]);
+				resultObject[i] = {'x':this.xPosition + i, 'y':this.yPosition};
 			} else {
-				resultArray.push([this.xPosition, this.yPosition+i]);
+				resultObject[i] = {'x':this.xPosition, 'y':this.yPosition + i};
 			}
 		}
-		return resultArray;
+		return resultObject;
 	};
 	Ship.prototype.create = function(x, y, direction) {
 		// This function assumes that you've already checked that the placement is legal
@@ -506,18 +520,16 @@ so I'm putting everything into one file. -->
 		this.direction = direction;
 		// direction === 0 when the ship is facing north/south
 		// direction === 1 when the ship is facing east/west
-		if (this.direction === 0) {
-			for (var i = 0; i < this.shipLength; i++) {
-				this.gameObject.player0grid.cells[x+i][y] = 1;
-			}
-		} else {
-			for (var j = 0; j < this.shipLength; j++) {
-				this.gameObject.player0grid.cells[x][y+j] = 1;
+		for (var i = 0; i < this.shipLength; i++) {
+			if (this.direction === 0) {
+				this.gameObject.player0grid.cells[x + i][y] = 1;
+			} else {
+				this.gameObject.player0grid.cells[x][y + i] = 1;
 			}
 		}
 	};
 
-	var mainGame = new Game(10,5);
+	var mainGame = new Game(10, 5);
 })();
 </script>
 </body>
