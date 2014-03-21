@@ -28,8 +28,8 @@
 		this.shotsTaken++;
 		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
 		document.querySelector('.ammo-counter').textContent = ammoRemaining;
-
-		// check if you've won or not
+	};
+	Game.prototype.checkIfWon = function() {
 		if (this.shotsTaken >= this.maxAllowedShots) {
 			alert('Yarr! You ran out of ammo. Try again.');
 			this.resetFogOfWar();
@@ -56,9 +56,11 @@
 			// update the board/grid
 			playerGrid.updateCell(x, y, 'hit');
 			this.updateShots();
+			this.checkIfWon();
 		} else {
 			playerGrid.updateCell(x, y, 'miss');
 			this.updateShots();
+			this.checkIfWon();
 		}
 
 	};
@@ -67,6 +69,7 @@
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 
+		// I couldn't figure out how to avoid referencing the global variable here :S
 		mainGame.shoot(x, y);
 	}
 	Game.prototype.resetFogOfWar = function() {
