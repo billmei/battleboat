@@ -207,7 +207,7 @@ everything in one file, so I'm putting everything into one file.
 	// I know this isn't the greatest OO code since I didn't know how to
 	// avoid using a few global variables but that's why I'm applying to
 	// Hacker School, so I can learn how to write better code!
-	var availableShips = ['carrier', 'battleship', 'destroyer', 'submarine', 'speedboat'];
+	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'speedboat'];
 
 	// Game manager object
 	function Game(size, numShips) {
@@ -374,9 +374,9 @@ everything in one file, so I'm putting everything into one file.
 	}
 	Fleet.prototype.populate = function() {
 		for (var i = 0; i < this.numShips; i++) {
-			// loop over the ship types when numShips > availableShips.length
-			var j = i % availableShips.length;
-			this.fleetRoster.push(new Ship(availableShips[j], this.gameObject));
+			// loop over the ship types when numShips > AVAILABLE_SHIPS.length
+			var j = i % AVAILABLE_SHIPS.length;
+			this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.gameObject));
 		}
 	};
 	Fleet.prototype.placeShipsRandomly = function() {
@@ -436,19 +436,19 @@ everything in one file, so I'm putting everything into one file.
 		this.gameObject = gameObject;
 		this.type = type;
 		switch (this.type) {
-			case availableShips[0]:
+			case AVAILABLE_SHIPS[0]:
 				this.shipLength = 5;
 				break;
-			case availableShips[1]:
+			case AVAILABLE_SHIPS[1]:
 				this.shipLength = 4;
 				break;
-			case availableShips[2]:
+			case AVAILABLE_SHIPS[2]:
 				this.shipLength = 3;
 				break;
-			case availableShips[3]:
+			case AVAILABLE_SHIPS[3]:
 				this.shipLength = 3;
 				break;
-			case availableShips[4]:
+			case AVAILABLE_SHIPS[4]:
 				this.shipLength = 2;
 				break;
 			default:
