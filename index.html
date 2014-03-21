@@ -200,7 +200,7 @@ so I'm putting everything into one file. -->
 	// Currently the computer just places ships at random and you have to guess where they are but eventually I want to implement an AI based on the DataGenetics algorithm: http://www.datagenetics.com/blog/december32011/
 
 	// I know this isn't the greatest OO code since I didn't know how to avoid using a few global variables but that's why I'm applying to Hacker School, so I can learn how to write better code!
-	var availableShips = ['carrier','battleship','destroyer','submarine','speedboat']
+	var availableShips = ['carrier','battleship','destroyer','submarine','speedboat'];
 
 	// Game manager object
 	function Game(size, numShips) {
@@ -238,11 +238,7 @@ so I'm putting everything into one file. -->
 		// fire!
 		var playerGrid = mainGame.player0grid;
 		var playerFleet = mainGame.player0fleet;
-		if (playerGrid.containsDamagedShip(x, y)) {
-			// Do nothing
-		} else if (playerGrid.containsCannonball(x, y)) {
-			// Do nothing
-		} else if (playerGrid.containsUndamagedShip(x, y)) {
+		if (playerGrid.containsUndamagedShip(x, y)) {
 			playerFleet.findShipByLocation(x, y).incrementDamage().checkIfSunk();
 			// update the board/grid
 			playerGrid.updateCell(x, y, 'hit');
@@ -257,8 +253,8 @@ so I'm putting everything into one file. -->
 		for (var i = 0; i < this.size; i++) {
 			for (var j = 0; j < this.size; j++) {
 				this.player0grid.updateCell(i, j, 'empty');
-			};
-		};
+			}
+		}
 	};
 	Game.prototype.initialize = function() {
 		// You are player 0 and the computer is player 1
@@ -327,6 +323,7 @@ so I'm putting everything into one file. -->
 				break;
 			default:
 				this.cells[x][y] = 0;
+				break;
 		}
 		var classes = ['grid-cell','grid-cell-'+x+'-'+y,'grid-'+type]
 		document.querySelector('.grid-cell-'+x+'-'+y).setAttribute('class', classes.join(' '))
@@ -406,8 +403,8 @@ so I'm putting everything into one file. -->
 					continue;
 				}
 			}
-			return null;
 		}
+		return null;
 	};
 	Fleet.prototype.allShipsSunk = function() {
 		for (var i = 0; i < this.fleetRoster.length; i++) {
@@ -442,6 +439,7 @@ so I'm putting everything into one file. -->
 				break;
 			default:
 				this.shipLength = 1;
+				break;
 		}
 		this.maxDamage = this.shipLength;
 		this.sunk = false;
@@ -458,8 +456,8 @@ so I'm putting everything into one file. -->
 				}
 				return true;
 			} else {
-				for (var i = 0; i < this.shipLength; i++) {
-					if (this.gameObject.player0grid.cells[x][y+i] === 1) {
+				for (var j = 0; j < this.shipLength; j++) {
+					if (this.gameObject.player0grid.cells[x][y+j] === 1) {
 						return false;
 					}
 				}
@@ -500,7 +498,7 @@ so I'm putting everything into one file. -->
 			}
 		}
 		return resultArray;
-	}
+	};
 	Ship.prototype.create = function(x, y, direction) {
 		// This function assumes that you've already checked that the placement is legal
 		this.xPosition = x;
@@ -513,8 +511,8 @@ so I'm putting everything into one file. -->
 				this.gameObject.player0grid.cells[x+i][y] = 1;
 			}
 		} else {
-			for (var i = 0; i < this.shipLength; i++) {
-				this.gameObject.player0grid.cells[x][y+i] = 1;
+			for (var j = 0; j < this.shipLength; j++) {
+				this.gameObject.player0grid.cells[x][y+j] = 1;
 			}
 		}
 	};
