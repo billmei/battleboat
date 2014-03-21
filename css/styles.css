@@ -1,0 +1,67 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
+html, body {
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	background-color: #ddd;
+}
+h1, h2, h3, h4, h5, h6, p {
+	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+	color: #222;
+}
+a {
+	color: #222;
+	font-weight: bold;
+}
+	a:hover {
+		text-decoration: none;
+	}
+div {
+	padding: 0;
+	margin: 0;
+}
+.container {
+	width: 520px;
+	text-align: center;
+	margin: 20px auto 100px auto;
+}
+.ammo-counter {
+	font-weight: bold;
+}
+.grid {
+	padding: 5px;
+	height: 520px;
+	width: 520px;
+	background-color: #25567B;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+}
+	.grid-cell {
+		vertical-align: top; /*clears the vertical space between rows*/
+		height: 50px;
+		width: 50px;
+		display: inline-block;
+		background-color: #66A3D2;
+		margin: 1px;
+		-webkit-border-radius: 2px;
+		-moz-border-radius: 2px;
+		border-radius: 2px;
+	}
+		.grid-cell:hover {
+			cursor: pointer;
+			background-color: #7EB3DA;
+		}
+
+	.grid-ship {
+		background-color: #C0C0C0;
+	}
+	.grid-miss, .grid-miss:hover {
+		background-color: white;
+	}
+	.grid-hit, .grid-hit:hover {
+		background-color: #F60018;
+	}
+	.grid-sunk, .grid-sunk:hover {
+		background-color: black;
+	}
