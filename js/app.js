@@ -77,7 +77,7 @@
 
 		// I couldn't figure out how to avoid referencing the global variable here :S
 		mainGame.shoot(x, y);
-	}
+	};
 	Game.prototype.resetFogOfWar = function() {
 		for (var i = 0; i < this.size; i++) {
 			for (var j = 0; j < this.size; j++) {
