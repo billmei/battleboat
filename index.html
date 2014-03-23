@@ -9,14 +9,23 @@
 <div class="container">
 	<h1>Battleboat</h1>
 	<p>A simple HTML5 battleship clone</p>
-	<p>Click on the cells below to find and destroy all five enemy ships
-	<br>You have <span class="ammo-counter">60</span> shots remaining</p>
-	<div class="pull-right">
-		<div class="grid"></div>
-	</div>
+	<p>Click on the cells below to<br>find and destroy all five enemy ships</p>
+	<p>You have <span class="ammo-counter">60</span> shots remaining</p>
+	<div class="grid"></div>
 	<p>Created by <a href="http://www.kortaggio.com">Bill Mei</a>.</p>
 	<p>This project is open-source on GitHub: <a href="https://github.com/kortaggio/battleboat">https://github.com/kortaggio/battleboat</a></p>
+	<div class="sidebar-left">
+		<h2>Ships remaining</h2>
+		<ol class="fleet-roster">
+			<li id="carrier">Aircraft Carrier</li>
+			<li id="battleship">Battleship</li>
+			<li id="destroyer">Destroyer</li>
+			<li id="submarine">Submarine</li>
+			<li id="patrolboat">Patrol Boat</li>
+		</ol>
+	</div>
 </div>
+
 <script src="js/app.js"></script>
 </body>
 </html>
