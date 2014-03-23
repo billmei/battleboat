@@ -5,7 +5,7 @@ html, body {
 	margin: 0;
 	background-color: #ddd;
 }
-h1, h2, h3, h4, h5, h6, p, li {
+h1, h2, h3, h4, h5, h6, p, li, span {
 	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
 	color: #222222;
 }
@@ -66,6 +66,14 @@ div {
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 }
+	.no-js {
+		width: 300px;
+		height: 300px;
+		margin: 100px auto;
+		display: inline-block;
+		color: #EEEEEE;
+		font-size: 2em;
+	}
 	.grid-cell {
 		vertical-align: top; /*clears the vertical space between rows*/
 		height: 40px;
