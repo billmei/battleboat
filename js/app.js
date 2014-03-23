@@ -88,6 +88,7 @@
 	Game.prototype.createGrid = function() {
 		// Generates the HTML grid
 		var gridDiv = document.querySelector('.grid');
+		gridDiv.removeChild(gridDiv.querySelector('.no-js')); // Removes the no-js warning
 		for (var i = 0; i < this.size; i++) {
 			for (var j = 0; j < this.size; j++) {
 				var el = document.createElement('div');
