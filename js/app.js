@@ -22,6 +22,7 @@
 		this.gameWon = false;
 		this.shotsTaken = 0;
 		this.maxAllowedShots = 60; // You lose if you take more shots than this
+		this.createGrid();
 		this.initialize();
 	}
 	Game.prototype.updateShots = function() {
@@ -78,6 +79,19 @@
 			for (var j = 0; j < this.size; j++) {
 				this.player0grid.updateCell(i, j, 'empty');
 			}
+		}
+	};
+	Game.prototype.createGrid = function() {
+		// Generates the HTML grid
+		var gridDiv = document.querySelector('.grid');
+		for (var i = 0; i < this.size; i++) {
+			for (var j = 0; j < this.size; j++) {
+				var el = document.createElement('div');
+				el.setAttribute('data-x',i);
+				el.setAttribute('data-y',j);
+				el.setAttribute('class','grid-cell grid-cell-' + i + '-' + j);
+				gridDiv.appendChild(el);
+			};
 		}
 	};
 	Game.prototype.initialize = function() {
@@ -298,17 +312,20 @@
 	Ship.prototype.incrementDamage = function() {
 		this.damage++;
 		if (this.isSunk()) {
-			this.sunk = true;
-			// Make the CSS class sunk
-			var allCells = this.getAllShipCells();
-			for (var i = 0; i < this.shipLength; i++) {
-				this.gameObject.player0grid.updateCell(allCells[i]['x'], allCells[i]['y'], 'sunk');
-			};
+			this.sinkShip(); // Sinks the ship
 		}
 		return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 	};
 	Ship.prototype.isSunk = function() {
 		return this.damage >= this.maxDamage;
+	};
+	Ship.prototype.sinkShip = function() {
+		this.sunk = true;
+		// Make the CSS class sunk
+		var allCells = this.getAllShipCells();
+		for (var i = 0; i < this.shipLength; i++) {
+			this.gameObject.player0grid.updateCell(allCells[i]['x'], allCells[i]['y'], 'sunk');
+		}
 	};
 	Ship.prototype.getAllShipCells = function() {
 	// returns a zero-indexed JSON with all (x, y) coordinates of the ship:
