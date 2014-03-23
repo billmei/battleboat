@@ -13,7 +13,7 @@
 	// I know this isn't the greatest OO code since I didn't know how to
 	// avoid using a few global variables but that's why I'm applying to
 	// Hacker School, so I can learn how to write better code!
-	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'speedboat'];
+	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
 	// Game manager object
 	function Game(size, numShips) {
@@ -30,6 +30,13 @@
 		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
 		document.querySelector('.ammo-counter').textContent = ammoRemaining;
 	};
+	Game.prototype.updateRoster = function() {
+		this.player0fleet.fleetRoster.forEach(function(ithShip, index, array){
+			if (ithShip.isSunk()) {
+				document.getElementById(AVAILABLE_SHIPS[index]).setAttribute('class', 'sunk');
+			}
+		});
+	};
 	Game.prototype.checkIfWon = function() {
 		if (this.player0fleet.allShipsSunk()) {
 			this.gameWon = true;
@@ -43,24 +50,21 @@
 		}
 	};
 	Game.prototype.shoot = function(x, y) {
-		var playerGrid = this.player0grid;
-		var playerFleet = this.player0fleet;
-
-		if (playerGrid.containsDamagedShip(x, y)) {
+		if (this.player0grid.containsDamagedShip(x, y)) {
 			// Do nothing
-		} else if (playerGrid.containsCannonball(x, y)) {
+		} else if (this.player0grid.containsCannonball(x, y)) {
 			// Do nothing
-		} else if (playerGrid.containsUndamagedShip(x, y)) {
+		} else if (this.player0grid.containsUndamagedShip(x, y)) {
 			// update the board/grid
-			playerGrid.updateCell(x, y, 'hit');
-			// increase the damage
+			this.player0grid.updateCell(x, y, 'hit');
 			// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
 			// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
-			playerFleet.findShipByLocation(x, y).incrementDamage();
+			this.player0fleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
 			this.updateShots();
+			this.updateRoster();
 			this.checkIfWon();
 		} else {
-			playerGrid.updateCell(x, y, 'miss');
+			this.player0grid.updateCell(x, y, 'miss');
 			this.updateShots();
 			this.checkIfWon();
 		}
@@ -87,9 +91,9 @@
 		for (var i = 0; i < this.size; i++) {
 			for (var j = 0; j < this.size; j++) {
 				var el = document.createElement('div');
-				el.setAttribute('data-x',i);
-				el.setAttribute('data-y',j);
-				el.setAttribute('class','grid-cell grid-cell-' + i + '-' + j);
+				el.setAttribute('data-x', i);
+				el.setAttribute('data-y', j);
+				el.setAttribute('class', 'grid-cell grid-cell-' + i + '-' + j);
 				gridDiv.appendChild(el);
 			};
 		}
@@ -105,9 +109,15 @@
 		// Reset game variables
 		this.shotsTaken = 0;
 		this.gameWon = false;
+
+		// Reset fleet roster display
+		var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
+		for (var i = 0; i < playerRoster.length; i++) {
+			playerRoster[i].setAttribute('class', '')
+		}
+
 		// add a click listener for the Grid.shoot() method for all cells
-		var gridContainer = document.querySelector('.grid');
-		var gridCells = gridContainer.childNodes;
+		var gridCells = document.querySelector('.grid').childNodes;
 		for (var i = 0; i < gridCells.length; i++) {
 			gridCells[i].addEventListener('click', this.clickListener, false);
 		}

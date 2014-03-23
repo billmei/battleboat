@@ -5,7 +5,7 @@ html, body {
 	margin: 0;
 	background-color: #ddd;
 }
-h1, h2, h3, h4, h5, h6, p {
+h1, h2, h3, h4, h5, h6, p, li {
 	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
 	color: #222222;
 }
@@ -21,17 +21,46 @@ div {
 	margin: 0;
 }
 .container {
-	width: 520px;
+	position: relative;
+	width: 420px;
 	text-align: center;
 	margin: 20px auto 100px auto;
 }
+	.sidebar-left {
+		width: 210px;
+		padding: 20px;
+		margin: 0;
+		background-color: #EEEEEE;
+		position: absolute;
+		/*text-align: left;*/
+		top: 13em;
+		left: -260px;
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+	}
+		.sidebar-left h2 {
+			margin: 0 0 1em 0;
+			text-align: center;
+		}
 .ammo-counter {
 	font-weight: bold;
 }
+.fleet-roster {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+	.fleet-roster li {
+		margin: 0.5em 0;
+	}
+	.sunk {
+		text-decoration: line-through;
+	}
 .grid {
 	padding: 5px;
-	height: 520px;
-	width: 520px;
+	height: 420px;
+	width: 420px;
 	background-color: #25567B;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
@@ -39,8 +68,8 @@ div {
 }
 	.grid-cell {
 		vertical-align: top; /*clears the vertical space between rows*/
-		height: 50px;
-		width: 50px;
+		height: 40px;
+		width: 40px;
 		display: inline-block;
 		background-color: #66A3D2;
 		margin: 1px;
