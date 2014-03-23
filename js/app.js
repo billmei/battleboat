@@ -50,9 +50,12 @@
 		} else if (playerGrid.containsCannonball(x, y)) {
 			// Do nothing
 		} else if (playerGrid.containsUndamagedShip(x, y)) {
-			playerFleet.findShipByLocation(x, y).incrementDamage();
 			// update the board/grid
 			playerGrid.updateCell(x, y, 'hit');
+			// increase the damage
+			// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
+			// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
+			playerFleet.findShipByLocation(x, y).incrementDamage();
 			this.updateShots();
 			this.checkIfWon();
 		} else {
@@ -296,6 +299,11 @@
 		this.damage++;
 		if (this.isSunk()) {
 			this.sunk = true;
+			// Make the CSS class sunk
+			var allCells = this.getAllShipCells();
+			for (var i = 0; i < this.shipLength; i++) {
+				this.gameObject.player0grid.updateCell(allCells[i]['x'], allCells[i]['y'], 'sunk');
+			};
 		}
 		return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 	};
