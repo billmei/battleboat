@@ -96,7 +96,7 @@
 				el.setAttribute('data-y', j);
 				el.setAttribute('class', 'grid-cell grid-cell-' + i + '-' + j);
 				gridDiv.appendChild(el);
-			};
+			}
 		}
 	};
 	Game.prototype.initialize = function() {
@@ -114,13 +114,13 @@
 		// Reset fleet roster display
 		var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
 		for (var i = 0; i < playerRoster.length; i++) {
-			playerRoster[i].setAttribute('class', '')
+			playerRoster[i].setAttribute('class', '');
 		}
 
 		// add a click listener for the Grid.shoot() method for all cells
 		var gridCells = document.querySelector('.grid').childNodes;
-		for (var i = 0; i < gridCells.length; i++) {
-			gridCells[i].addEventListener('click', this.clickListener, false);
+		for (var j = 0; j < gridCells.length; j++) {
+			gridCells[j].addEventListener('click', this.clickListener, false);
 		}
 		this.player0fleet.placeShipsRandomly();
 		document.querySelector('.ammo-counter').textContent = this.maxAllowedShots;
@@ -143,7 +143,7 @@
 			var row = [];
 			this.cells[x] = row;
 			for (var y = 0; y < this.size; y++) {
-				row.push(0)
+				row.push(0);
 			}
 		}
 	};
@@ -174,8 +174,8 @@
 				this.cells[x][y] = 0;
 				break;
 		}
-		var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type]
-		document.querySelector('.grid-cell-' + x + '-' + y).setAttribute('class', classes.join(' '))
+		var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type];
+		document.querySelector('.grid-cell-' + x + '-' + y).setAttribute('class', classes.join(' '));
 	};
 	Grid.prototype.containsUndamagedShip = function(x, y) {
 		if (this.cells[x][y] === 1) {
@@ -335,16 +335,16 @@
 		// Make the CSS class sunk
 		var allCells = this.getAllShipCells();
 		for (var i = 0; i < this.shipLength; i++) {
-			this.gameObject.player0grid.updateCell(allCells[i]['x'], allCells[i]['y'], 'sunk');
+			this.gameObject.player0grid.updateCell(allCells[i].x, allCells[i].y, 'sunk');
 		}
 	};
 	Ship.prototype.getAllShipCells = function() {
 	// returns a zero-indexed JSON with all (x, y) coordinates of the ship:
 	// e.g.
 	// {
-	// 	0:{'x':2, 'y':2},
-	// 	1:{'x':3, 'y':2},
-	// 	2:{'x':4, 'y':2}
+	//	0:{'x':2, 'y':2},
+	//	1:{'x':3, 'y':2},
+	//	2:{'x':4, 'y':2}
 	// }
 		var resultObject = {};
 		for (var i = 0; i < this.shipLength; i++) {
