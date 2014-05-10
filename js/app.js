@@ -9,6 +9,7 @@
 	// have to guess where they are but eventually I want to
 	// implement an AI based on the DataGenetics algorithm:
 	// http://www.datagenetics.com/blog/december32011/
+
 	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
 	/**
@@ -72,12 +73,16 @@
 		}
 
 	};
+	/**
+	 * Creates click event listeners on each one of the 100 grid cells, then passes the result to Game.shoot(x, y)
+	 * @param event
+	 */
 	Game.prototype.clickListener = function(e) {
 		// extract coordinates from event listener
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 
-		// I couldn't figure out how to avoid referencing the global variable here :S
+		// I couldn't figure out how to avoid referencing the global variable here
 		mainGame.shoot(x, y);
 	};
 	/**
