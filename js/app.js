@@ -9,13 +9,15 @@
 	// have to guess where they are but eventually I want to
 	// implement an AI based on the DataGenetics algorithm:
 	// http://www.datagenetics.com/blog/december32011/
-
-	// I know this isn't the greatest OO code since I didn't know how to
-	// avoid using a few global variables but that's why I'm applying to
-	// Hacker School, so I can learn how to write better code!
 	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
-	// Game manager object
+	/**
+	 * Game manager object
+	 *
+	 * @param size
+	 * @param numShips
+	 * @constructor
+	 */
 	function Game(size, numShips) {
 		this.size = size;
 		this.numShips = numShips;
@@ -78,6 +80,9 @@
 		// I couldn't figure out how to avoid referencing the global variable here :S
 		mainGame.shoot(x, y);
 	};
+	/**
+	 * Resets the fog of war
+	 */
 	Game.prototype.resetFogOfWar = function() {
 		for (var i = 0; i < this.size; i++) {
 			for (var j = 0; j < this.size; j++) {
@@ -85,6 +90,9 @@
 			}
 		}
 	};
+	/**
+	 * Generates the HTML divs for the grid
+	 */
 	Game.prototype.createGrid = function() {
 		// Generates the HTML grid
 		var gridDiv = document.querySelector('.grid');
@@ -99,6 +107,9 @@
 			}
 		}
 	};
+	/**
+	 * Initializes the game
+	 */
 	Game.prototype.initialize = function() {
 		// You are player 0 and the computer is player 1
 		this.player0grid = new Grid(0, this.size);
@@ -126,7 +137,12 @@
 		document.querySelector('.ammo-counter').textContent = this.maxAllowedShots;
 	};
 
-	// Grid object
+	/**
+	 * Grid Object
+	 * @param player
+	 * @param size
+	 * @constructor
+	 */
 	function Grid(player, size) {
 		// Grid code:
 		// 0 = water (empty)
@@ -138,6 +154,9 @@
 		this.cells = [];
 		this.initialize();
 	}
+	/**
+	 * Grid initialization routine
+	 */
 	Grid.prototype.initialize = function() {
 		for (var x = 0; x < this.size; x++) {
 			var row = [];
@@ -147,27 +166,34 @@
 			}
 		}
 	};
+	// Possible values for the parameter `type` (string)
+	Grid.prototype.TYPE_EMPTY = 'empty';
+	Grid.prototype.TYPE_SHIP = 'ship';
+	Grid.prototype.TYPE_MISS = 'miss';
+	Grid.prototype.TYPE_HIT = 'hit';
+	Grid.prototype.TYPE_SUNK = 'sunk';
+	/**
+	 * Updates a cell class based on the type passed in
+	 *
+	 * @param x
+	 * @param y
+	 * @param type
+	 */
 	Grid.prototype.updateCell = function(x, y, type) {
-		// Possible values for the parameter `type`  (string) can be:
-		// empty
-		// ship
-		// miss
-		// hit
-		// sunk
 		switch (type) {
-			case 'empty':
+			case this.TYPE_EMPTY:
 				this.cells[x][y] = 0;
 				break;
-			case 'ship':
+			case this.TYPE_SHIP:
 				this.cells[x][y] = 1;
 				break;
-			case 'miss':
+			case this.TYPE_MISS:
 				this.cells[x][y] = 2;
 				break;
-			case 'hit':
+			case this.TYPE_HIT:
 				this.cells[x][y] = 3;
 				break;
-			case 'sunk':
+			case this.TYPE_SUNK:
 				this.cells[x][y] = 4;
 				break;
 			default:
@@ -177,29 +203,44 @@
 		var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type];
 		document.querySelector('.grid-cell-' + x + '-' + y).setAttribute('class', classes.join(' '));
 	};
+	/**
+	 * Checks to see if a cell contains an undamaged ship
+	 *
+	 * @param x
+	 * @param y
+	 * @returns {boolean}
+	 */
 	Grid.prototype.containsUndamagedShip = function(x, y) {
-		if (this.cells[x][y] === 1) {
-			return true;
-		} else {
-			return false;
-		}
+		return this.cells[x][y] === 1;
 	};
+	/**
+	 * Checks to see if a cell contains a cannonball
+	 *
+	 * @param x
+	 * @param y
+	 * @returns {boolean}
+	 */
 	Grid.prototype.containsCannonball = function(x, y) {
-		if (this.cells[x][y] === 2) {
-			return true;
-		} else {
-			return false;
-		}
+		return this.cells[x][y] === 2;
 	};
+	/**
+	 * Checks to see if a cell contains a damaged ship
+	 * @param x
+	 * @param y
+	 * @returns {boolean}
+	 */
 	Grid.prototype.containsDamagedShip = function(x, y) {
-		if (this.cells[x][y] === 3 || this.cells[x][y] === 4) {
-			return true;
-		} else {
-			return false;
-		}
+		return this.cells[x][y] === 3 || this.cells[x][y] === 4;
 	};
 
-	// Fleet object
+	/**
+	 * Fleet object
+	 *
+	 * @param player
+	 * @param numShips
+	 * @param gameObject
+	 * @constructor
+	 */
 	function Fleet(player, numShips, gameObject) {
 		this.player = player;
 		this.numShips = numShips;
@@ -207,6 +248,11 @@
 		this.fleetRoster = [];
 		this.populate();
 	}
+	/**
+	 * Populates a fleet
+	 *
+	 * TODO: Remove the hardcoded dependency on available ships
+	 */
 	Fleet.prototype.populate = function() {
 		for (var i = 0; i < this.numShips; i++) {
 			// loop over the ship types when numShips > AVAILABLE_SHIPS.length
@@ -214,6 +260,11 @@
 			this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.gameObject));
 		}
 	};
+	/**
+	 * Handles placing ships randomly on the board.
+	 *
+	 * TODO: This should probably use some dependency injection
+	 */
 	Fleet.prototype.placeShipsRandomly = function() {
 		for (var i = 0; i < this.fleetRoster.length; i++) {
 			var illegalPlacement = true;
@@ -230,9 +281,15 @@
 			}
 		}
 	};
+	/**
+	 * Finds a ship by location
+	 * Returns the ship object located at (x, y)
+	 * If no ship exists at (x, y), this returns null.
+	 * @param x
+	 * @param y
+	 * @returns {*}
+	 */
 	Fleet.prototype.findShipByLocation = function(x, y) {
-		// Returns the ship object located at (x, y)
-		// If no ship exists at (x, y), this returns null.
 		for (var i = 0; i < this.fleetRoster.length; i++) {
 			var currentShip = this.fleetRoster[i];
 			if (currentShip.direction === 0) {
@@ -255,6 +312,11 @@
 		}
 		return null;
 	};
+	/**
+	 * Checks to see if all ships have been sunk
+	 *
+	 * @returns {boolean}
+	 */
 	Fleet.prototype.allShipsSunk = function() {
 		for (var i = 0; i < this.fleetRoster.length; i++) {
 			// If one or more ships are not sunk, then the sentence "all ships are sunk" is false.
@@ -265,7 +327,13 @@
 		return true;
 	};
 
-	// Ship object
+	/**
+	 * Ship object
+	 *
+	 * @param type
+	 * @param gameObject
+	 * @constructor
+	 */
 	function Ship(type, gameObject) {
 		this.damage = 0;
 		this.gameObject = gameObject;
@@ -293,6 +361,14 @@
 		this.maxDamage = this.shipLength;
 		this.sunk = false;
 	}
+	/**
+	 * Checks to see if the placement of a ship is legal
+	 *
+	 * @param x
+	 * @param y
+	 * @param direction
+	 * @returns {boolean}
+	 */
 	Ship.prototype.isLegal = function(x, y, direction) {
 		// first, check if the ship is within the grid...
 		if (this.withinBounds(x, y, direction)) {
@@ -313,6 +389,13 @@
 			return false;
 		}
 	};
+	/**
+	 * Checks to see if the ship is within bounds
+	 * @param x
+	 * @param y
+	 * @param direction
+	 * @returns {boolean}
+	 */
 	Ship.prototype.withinBounds = function(x, y, direction) {
 		if (direction === 0) {
 			return x + this.shipLength <= this.gameObject.size;
@@ -320,6 +403,11 @@
 			return y + this.shipLength <= this.gameObject.size;
 		}
 	};
+	/**
+	 * Increments the damage counter of a ship
+	 *
+	 * @returns {Ship}
+	 */
 	Ship.prototype.incrementDamage = function() {
 		this.damage++;
 		if (this.isSunk()) {
@@ -327,9 +415,18 @@
 		}
 		return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 	};
+	/**
+	 * Checks to see if the ship is sunk
+	 *
+	 * @returns {boolean}
+	 */
 	Ship.prototype.isSunk = function() {
 		return this.damage >= this.maxDamage;
 	};
+	/**
+	 * Sinks the ship
+	 *
+	 */
 	Ship.prototype.sinkShip = function() {
 		this.sunk = true;
 		// Make the CSS class sunk
@@ -338,14 +435,18 @@
 			this.gameObject.player0grid.updateCell(allCells[i].x, allCells[i].y, 'sunk');
 		}
 	};
+	/**
+	 * Gets all the ship cells
+	 *
+	 * returns a zero-indexed JSON with all (x, y) coordinates of the ship:
+	 * e.g.
+	 * {
+	 *	0:{'x':2, 'y':2},
+	 *	1:{'x':3, 'y':2},
+	 *	2:{'x':4, 'y':2}
+	 * }
+	 */
 	Ship.prototype.getAllShipCells = function() {
-	// returns a zero-indexed JSON with all (x, y) coordinates of the ship:
-	// e.g.
-	// {
-	//	0:{'x':2, 'y':2},
-	//	1:{'x':3, 'y':2},
-	//	2:{'x':4, 'y':2}
-	// }
 		var resultObject = {};
 		for (var i = 0; i < this.shipLength; i++) {
 			if (this.direction === 0) {
@@ -356,6 +457,13 @@
 		}
 		return resultObject;
 	};
+	/**
+	 * Creates a ship
+	 *
+	 * @param x
+	 * @param y
+	 * @param direction
+	 */
 	Ship.prototype.create = function(x, y, direction) {
 		// This function assumes that you've already checked that the placement is legal
 		this.xPosition = x;
