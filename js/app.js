@@ -570,7 +570,7 @@
 			// If the result doesn't exist it means we haven't visited the cell
 			result = Grid.TYPE_EMPTY;
 		}
-		this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = Grid.TYPE_EMPTY;
+		this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
 		this.unvisitedCells.splice(randomCoords, 1);
 	};
@@ -640,8 +640,8 @@
 
 		// DEBUGGING
 		console.log('======================');
-		for (var tt = 0; tt < candidateCells.length; tt++) {
-			console.log('Candidate cells ' + tt + ': ' + '(x='+ candidateCells[tt].x+', y='+candidateCells[tt].y+')');
+		for (var _i = 0; _i < candidateCells.length; _i++) {
+			console.log('Candidate cells ' + _i + ': ' + '(x='+ candidateCells[_i].x+', y='+candidateCells[_i].y+')');
 		}
 		console.log('Chase direction: ' + this.chaseDirection);
 		console.log('this.lastVisitedCell: ' +  '(x='+ this.lastVisitedCell.x+', y='+this.lastVisitedCell.y+')');
@@ -662,21 +662,20 @@
 		}
 		this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
-		if (!this.isCurrentShipSunk()) {
-			// If you hit a ship, keep chasing in the same direction
-			if (result === Grid.TYPE_SHIP) {
+		// If you hit a ship, keep chasing in the same direction
+		if (result === Grid.TYPE_SHIP) {
+			if (this.isCurrentShipSunk(this.lastVisitedCell.x, this.lastVisitedCell.y)) {
+				// Reset your temporary variables before going back to spread strategy
+				this.chaseDirection = null;
+				this.firstHitCell = null;
+				this.currentStrategy = 'spread';
+			} else {
 				this.chaseDirection = candidateCells[chosenDirection].directionName;
-			// If you don't hit a ship, keep trying cells around the same root node
-			} else if (result === Grid.TYPE_MISS) {
-				this.lastVisitedCell = targetedCell;
-				this.chaseDirection = 'none';
 			}
-			this.currentStrategy = 'chase';
-		} else {
-			// Reset your temporary variables before going back to spread strategy
-			this.chaseDirection = null;
-			this.firstHitCell = null;
-			this.currentStrategy = 'spread';
+		// If you don't hit a ship, keep trying cells around the same root node
+		} else if (result === Grid.TYPE_MISS) {
+			this.lastVisitedCell = targetedCell;
+			this.chaseDirection = 'none';
 		}
 
 	};
@@ -687,8 +686,8 @@
 			this.chase();
 		}
 	};
-	AI.prototype.isCurrentShipSunk = function() {
-		return false;
+	AI.prototype.isCurrentShipSunk = function(x, y) {
+		return this.gameObject.player0fleet.findShipByLocation(x, y).isSunk();
 	};
 	AI.prototype.getLegalNeighbors = function() {
 		var candidateCells = [];
@@ -715,7 +714,7 @@
 		};
 
 		// Make sure the candidate cell is inside the grid, and unvisited
-		if (north.x > 0 &&
+		if (north.x >= 0 &&
 			this.visibleGrid[north.x][north.y] === Grid.TYPE_EMPTY) {
 			candidateCells.push(north);
 		}
@@ -727,7 +726,7 @@
 			this.visibleGrid[south.x][south.y] === Grid.TYPE_EMPTY) {
 			candidateCells.push(south);
 		}
-		if (west.y > 0 &&
+		if (west.y >= 0 &&
 			this.visibleGrid[west.x][west.y] === Grid.TYPE_EMPTY) {
 			candidateCells.push(west);
 		}
