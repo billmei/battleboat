@@ -3,8 +3,6 @@
 	// Bill Mei, 2014
 	// MIT License
 	
-	// This is one-player for now which means you don't get to place
-	// your own ships yet but I'm going to update that later.
 	// Currently the computer just places ships at random and you
 	// have to guess where they are but eventually I want to
 	// implement an AI based on the DataGenetics algorithm:
@@ -24,14 +22,14 @@
 	function Game(size) {
 		Game.size = size;
 		this.gameWon = false;
-		this.currentTurn = Game.PLAYER_0;
 		this.shotsTaken = 0;
 		this.maxAllowedShots = 60; // You lose if you take more shots than this
 		this.createGrid();
 		this.initialize();
 	}
 	Game.size = 10; // Default grid size is 10x10
-
+	// Initialize first turn to the player
+	Game.currentTurn = Game.PLAYER_0;
 	// You are player 0 and the computer is player 1
 	Game.PLAYER_0 = 0;
 	Game.PLAYER_1 = 1;
@@ -102,9 +100,16 @@
 		// extract coordinates from event listener
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
-
-		// I couldn't figure out how to avoid referencing the global variable here
-		mainGame.shoot(x, y, Game.PLAYER_1);
+		// console.log(mainGame);
+		// if (Game.currentTurn === Game.PLAYER_0) {
+			// I couldn't figure out how to avoid referencing the global variable here
+			mainGame.shoot(x, y, Game.PLAYER_1);
+			// Game.currentTurn = Game.PLAYER_1;
+			robot.shoot();
+			// Game.currentTurn = Game.PLAYER_0;
+		// } else {
+			
+		// }
 	};
 	/**
 	 * Resets the fog of war
@@ -523,8 +528,8 @@
 	};
 
 	// Optimal battleship-playing AI
-	function AI() {
-
+	function AI(gameObject) {
+		this.gameObject = gameObject;
 	}
 	AI.prototype.hunt = function() {
 		// body...
@@ -532,6 +537,13 @@
 	AI.prototype.target = function() {
 		// body...
 	};
+	AI.prototype.shoot = function() {
+		// shoots randomly for now
+		var randomX = Math.floor(10*Math.random());
+		var randomY = Math.floor(10*Math.random());
+		this.gameObject.shoot(randomX, randomY, Game.PLAYER_0);
+	};
 
 	var mainGame = new Game(10);
+	var robot = new AI(mainGame);
 })();
