@@ -41,8 +41,8 @@
 		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
 		document.querySelector('.ammo-counter').textContent = ammoRemaining;
 	};
-	Game.prototype.updateRoster = function() {
-		this.player0fleet.fleetRoster.forEach(function(ithShip, index, array){
+	Game.prototype.updateRoster = function(targetFleet) {
+		targetFleet.fleetRoster.forEach(function(ithShip, index, array){
 			if (ithShip.isSunk()) {
 				document.getElementById(AVAILABLE_SHIPS[index]).setAttribute('class', 'sunk');
 			}
@@ -61,34 +61,34 @@
 		}
 	};
 	Game.prototype.shoot = function(x, y, targetPlayer) {
-		var grid;
-		var fleet;
+		var targetGrid;
+		var targetFleet;
 		if (targetPlayer === Game.PLAYER_0) {
-			grid = this.player0grid;
-			fleet = this.player0fleet;
+			targetGrid = this.player0grid;
+			targetFleet = this.player0fleet;
 		} else if (targetPlayer === Game.PLAYER_1) {
-			grid = this.player1grid;
-			fleet = this.player1fleet;
+			targetGrid = this.player1grid;
+			targetFleet = this.player1fleet;
 		} else {
 			// Should never be called
 			console.log("There was an error trying to find the correct player to target");
 			}
 
-		if (grid.containsDamagedShip(x, y)) {
+		if (targetGrid.containsDamagedShip(x, y)) {
 			// Do nothing
-		} else if (grid.containsCannonball(x, y)) {
+		} else if (targetGrid.containsCannonball(x, y)) {
 			// Do nothing
-		} else if (grid.containsUndamagedShip(x, y)) {
+		} else if (targetGrid.containsUndamagedShip(x, y)) {
 			// update the board/grid
-			grid.updateCell(x, y, 'hit', targetPlayer);
+			targetGrid.updateCell(x, y, 'hit', targetPlayer);
 			// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
 			// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
-			fleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
+			targetFleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
 			this.updateShots();
-			this.updateRoster();
+			this.updateRoster(targetFleet);
 			this.checkIfWon();
 		} else {
-			grid.updateCell(x, y, 'miss', targetPlayer);
+			targetGrid.updateCell(x, y, 'miss', targetPlayer);
 			this.updateShots();
 			this.checkIfWon();
 		}
@@ -143,8 +143,8 @@
 	Game.prototype.initialize = function() {
 		this.player0grid = new Grid(Game.size);
 		this.player1grid = new Grid(Game.size);
-		this.player0fleet = new Fleet(this.player0grid);
-		this.player1fleet = new Fleet(this.player1grid);
+		this.player0fleet = new Fleet(this.player0grid, Game.PLAYER_0);
+		this.player1fleet = new Fleet(this.player1grid, Game.PLAYER_1);
 
 		// Reset game variables
 		this.shotsTaken = 0;
@@ -282,9 +282,10 @@
 	 * @param playerOwner
 	 * @constructor
 	 */
-	function Fleet(playerGrid) {
+	function Fleet(playerGrid, player) {
 		this.numShips = AVAILABLE_SHIPS.length;
 		this.playerGrid = playerGrid;
+		this.player = player;
 		this.fleetRoster = [];
 		this.populate();
 	}
@@ -297,7 +298,7 @@
 		for (var i = 0; i < this.numShips; i++) {
 			// loop over the ship types when numShips > AVAILABLE_SHIPS.length
 			var j = i % AVAILABLE_SHIPS.length;
-			this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.playerGrid));
+			this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.playerGrid, this.player));
 		}
 	};
 	/**
@@ -374,10 +375,11 @@
 	 * @param playerGrid
 	 * @constructor
 	 */
-	function Ship(type, playerGrid) {
+	function Ship(type, playerGrid, player) {
 		this.damage = 0;
-		this.playerGrid = playerGrid;
 		this.type = type;
+		this.playerGrid = playerGrid;
+		this.player = player;
 		switch (this.type) {
 			case AVAILABLE_SHIPS[0]:
 				this.shipLength = 5;
@@ -472,7 +474,7 @@
 		// Make the CSS class sunk
 		var allCells = this.getAllShipCells();
 		for (var i = 0; i < this.shipLength; i++) {
-			this.playerGrid.updateCell(allCells[i].x, allCells[i].y, 'sunk', Game.PLAYER_0);
+			this.playerGrid.updateCell(allCells[i].x, allCells[i].y, 'sunk', this.player);
 		}
 	};
 	/**
