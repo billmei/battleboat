@@ -172,24 +172,7 @@
 	function Grid(player, size) {
 		this.size = size;
 		this.cells = [];
-
-		this.getCell = function(x, y) {
-			return this.cells[x][y];
-		};
-		this.setCell = function(x, y, value) {
-			this.cells[x][y] = value;
-		};
-		this.initializeCells = function() {
-			for (var x = 0; x < this.size; x++) {
-				var row = [];
-				this.cells[x] = row;
-				for (var y = 0; y < this.size; y++) {
-					row.push(0);
-				}
-			}
-		};
-
-		this.initializeCells();
+		this.initialize();
 	}
 	// Possible values for the parameter `type` (string)
 	Grid.prototype.CSS_TYPE_EMPTY = 'empty';
@@ -205,6 +188,19 @@
 	Grid.prototype.TYPE_SUNK = 4; // 4 = sunk ship
 
 	/**
+	 * Grid initialization routine
+	 */
+	Grid.prototype.initialize = function() {
+		for (var x = 0; x < this.size; x++) {
+			var row = [];
+			this.cells[x] = row;
+			for (var y = 0; y < this.size; y++) {
+				row.push(0);
+			}
+		}
+	};
+
+	/**
 	 * Updates a cell class based on the type passed in
 	 *
 	 * @param x
@@ -214,22 +210,22 @@
 	Grid.prototype.updateCell = function(x, y, type) {
 		switch (type) {
 			case this.CSS_TYPE_EMPTY:
-				setCell(x, y, this.TYPE_EMPTY);
+				this.cells[x][y] = this.TYPE_EMPTY;
 				break;
 			case this.CSS_TYPE_SHIP:
-				setCell(x, y, this.TYPE_SHIP);
+				this.cells[x][y] = this.TYPE_SHIP;
 				break;
 			case this.CSS_TYPE_MISS:
-				setCell(x, y, this.TYPE_MISS);
+				this.cells[x][y] = this.TYPE_MISS;
 				break;
 			case this.CSS_TYPE_HIT:
-				setCell(x, y, this.TYPE_HIT);
+				this.cells[x][y] = this.TYPE_HIT;
 				break;
 			case this.CSS_TYPE_SUNK:
-				setCell(x, y, this.TYPE_SUNK);
+				this.cells[x][y] = this.TYPE_SUNK;
 				break;
 			default:
-				setCell(x, y, this.TYPE_EMPTY);
+				this.cells[x][y] = this.TYPE_EMPTY;
 				break;
 		}
 		var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type];
@@ -243,7 +239,7 @@
 	 * @returns {boolean}
 	 */
 	Grid.prototype.containsUndamagedShip = function(x, y) {
-		return getCell(x, y) === this.TYPE_SHIP;
+		return this.cells[x][y] === this.TYPE_SHIP;
 	};
 	/**
 	 * Checks to see if a cell contains a cannonball
@@ -253,7 +249,7 @@
 	 * @returns {boolean}
 	 */
 	Grid.prototype.containsCannonball = function(x, y) {
-		return getCell(x, y) === this.TYPE_MISS;
+		return this.cells[x][y] === this.TYPE_MISS;
 	};
 	/**
 	 * Checks to see if a cell contains a damaged ship
@@ -262,7 +258,7 @@
 	 * @returns {boolean}
 	 */
 	Grid.prototype.containsDamagedShip = function(x, y) {
-		return getCell(x, y) === this.TYPE_HIT || getCell(x, y) === this.TYPE_SUNK;
+		return this.cells[x][y] === this.TYPE_HIT || this.cells[x][y] === this.TYPE_SUNK;
 	};
 
 	/**
@@ -407,11 +403,11 @@
 			// ...then check to make sure it doesn't collide with another ship
 			for (var i = 0; i < this.shipLength; i++) {
 				if (direction === 0) {
-					if (this.gameObject.player0grid.getCell(x + i, y) === Grid.TYPE_SHIP) {
+					if (this.gameObject.player0grid.cells[x + i][y] === 1) {
 						return false;
 					}
 				} else {
-					if (this.gameObject.player0grid.getCell(x, y + i) === Grid.TYPE_SHIP) {
+					if (this.gameObject.player0grid.cells[x][y + i] === 1) {
 						return false;
 					}
 				}
@@ -505,9 +501,9 @@
 		// direction === 1 when the ship is facing east/west
 		for (var i = 0; i < this.shipLength; i++) {
 			if (this.direction === 0) {
-				this.gameObject.player0grid.setCell(x + i, y, Grid.TYPE_SHIP);
+				this.gameObject.player0grid.cells[x + i][y] = 1;
 			} else {
-				this.gameObject.player0grid.setCell(x, y + i, Grid.TYPE_SHIP);
+				this.gameObject.player0grid.cells[x][y + i] = 1;
 			}
 		}
 	};
