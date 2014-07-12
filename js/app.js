@@ -566,12 +566,11 @@
 		this.lastVisitedCell.directionName = 'none';
 
 		// Update the AI's visible grid with the result
-		if (result !== null || result !== undefined) {
-			this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
-		// If the result doesn't exist it means we haven't visited the cell
-		} else {
-			this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = Grid.TYPE_EMPTY;
+		if (result === null || result === undefined) {
+			// If the result doesn't exist it means we haven't visited the cell
+			result = Grid.TYPE_EMPTY;
 		}
+		this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = Grid.TYPE_EMPTY;
 
 		this.unvisitedCells.splice(randomCoords, 1);
 	};
@@ -631,14 +630,13 @@
 				}
 			}
 			candidateCells = this.getLegalNeighbors();
-		} else {
-			// Shoot and store the result
-			result = this.gameObject.shoot(
-				candidateCells[chosenDirection].x,
-				candidateCells[chosenDirection].y,
-				Game.PLAYER_0
-				);
 		}
+		// Shoot and store the result
+		result = this.gameObject.shoot(
+			candidateCells[chosenDirection].x,
+			candidateCells[chosenDirection].y,
+			Game.PLAYER_0
+			);
 
 		// DEBUGGING
 		console.log('======================');
@@ -659,9 +657,10 @@
 		this.lastVisitedCell = candidateCells[chosenDirection];
 		
 		// Update the AI's visible grid with the result
-		if (result !== null) {
-			this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
+		if (result === null || result === undefined) {
+			result = Grid.TYPE_EMPTY;
 		}
+		this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
 		if (!this.isCurrentShipSunk()) {
 			// If you hit a ship, keep chasing in the same direction
