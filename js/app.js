@@ -563,10 +563,14 @@
 			this.currentStrategy = 'spread';
 		}
 		this.lastVisitedCell = this.unvisitedCells[randomCoords];
-		
+		this.lastVisitedCell.directionName = 'none';
+
 		// Update the AI's visible grid with the result
-		if (result !== null) {
+		if (result !== null || result !== undefined) {
 			this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
+		// If the result doesn't exist it means we haven't visited the cell
+		} else {
+			this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = Grid.TYPE_EMPTY;
 		}
 
 		this.unvisitedCells.splice(randomCoords, 1);
@@ -585,47 +589,7 @@
 		var chosenDirection;
 		var result;
 
-		candidateCells = getLegalNeighbors();
-
-
-		var north = {
-			'x': this.lastVisitedCell.x - 1,
-			'y': this.lastVisitedCell.y,
-			'directionName': 'north'
-		};
-		var east = {
-			'x': this.lastVisitedCell.x,
-			'y': this.lastVisitedCell.y + 1,
-			'directionName': 'east'
-		};
-		var south = {
-			'x': this.lastVisitedCell.x + 1,
-			'y': this.lastVisitedCell.y,
-			'directionName': 'south'
-		};
-		var west = {
-			'x': this.lastVisitedCell.x,
-			'y': this.lastVisitedCell.y - 1,
-			'directionName': 'west'
-		};
-
-		// Make sure the candidate cell is inside the grid, and unvisited
-		if (north.x > 0 &&
-			this.visibleGrid[north.x][north.y] === Grid.TYPE_EMPTY) {
-			candidateCells.push(north);
-		}
-		if (east.y <= Game.size &&
-			this.visibleGrid[east.x][east.y] === Grid.TYPE_EMPTY) {
-			candidateCells.push(east);
-		}
-		if (south.x <= Game.size &&
-			this.visibleGrid[south.x][south.y] === Grid.TYPE_EMPTY) {
-			candidateCells.push(south);
-		}
-		if (west.y > 0 &&
-			this.visibleGrid[west.x][west.y] === Grid.TYPE_EMPTY) {
-			candidateCells.push(west);
-		}
+		candidateCells = this.getLegalNeighbors();
 
 		// Choose a random chase direction if one hasn't been established yet
 		// Otherwise, keep chasing in the direction you were going in
@@ -637,10 +601,11 @@
 			chosenDirection = Math.floor(candidateCells.length * Math.random());
 			for (var i = 0; i < candidateCells.length; i++) {
 				if (candidateCells[i].directionName === this.chaseDirection) {
-					chosenDirection = candidateCells[i];
+					chosenDirection = i;
 				}
 			}
 		}
+
 
 		// If there aren't any candidate cells, we need to jump to the next
 		// unexplored cell in the last direction
@@ -664,11 +629,8 @@
 						this.chaseDirection = 'none';
 						break;
 				}
-
 			}
-			this.chase();
-			// break here because we've run chase() above
-			return;
+			candidateCells = this.getLegalNeighbors();
 		} else {
 			// Shoot and store the result
 			result = this.gameObject.shoot(
@@ -678,7 +640,20 @@
 				);
 		}
 
-		
+		// DEBUGGING
+		console.log('======================');
+		for (var tt = 0; tt < candidateCells.length; tt++) {
+			console.log('Candidate cells ' + tt + ': ' + '(x='+ candidateCells[tt].x+', y='+candidateCells[tt].y+')');
+		}
+		console.log('Chase direction: ' + this.chaseDirection);
+		console.log('this.lastVisitedCell: ' +  '(x='+ this.lastVisitedCell.x+', y='+this.lastVisitedCell.y+')');
+		console.log('targeted cell: ' + '(x='+ candidateCells[chosenDirection].x+', y='+candidateCells[chosenDirection].y+')');
+		console.log('target result: ' + result);
+		// DEBUGGING
+
+
+		// TODO: If there are any visible hit cells on the grid at any time we
+		// have to go back and try to sink that ship
 
 		// Set the next root cell to be in the current chase direction
 		this.lastVisitedCell = candidateCells[chosenDirection];
@@ -717,7 +692,48 @@
 		return false;
 	};
 	AI.prototype.getLegalNeighbors = function() {
+		var candidateCells = [];
 
+		var north = {
+			'x': this.lastVisitedCell.x - 1,
+			'y': this.lastVisitedCell.y,
+			'directionName': 'north'
+		};
+		var east = {
+			'x': this.lastVisitedCell.x,
+			'y': this.lastVisitedCell.y + 1,
+			'directionName': 'east'
+		};
+		var south = {
+			'x': this.lastVisitedCell.x + 1,
+			'y': this.lastVisitedCell.y,
+			'directionName': 'south'
+		};
+		var west = {
+			'x': this.lastVisitedCell.x,
+			'y': this.lastVisitedCell.y - 1,
+			'directionName': 'west'
+		};
+
+		// Make sure the candidate cell is inside the grid, and unvisited
+		if (north.x > 0 &&
+			this.visibleGrid[north.x][north.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(north);
+		}
+		if (east.y < Game.size &&
+			this.visibleGrid[east.x][east.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(east);
+		}
+		if (south.x < Game.size &&
+			this.visibleGrid[south.x][south.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(south);
+		}
+		if (west.y > 0 &&
+			this.visibleGrid[west.x][west.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(west);
+		}
+
+		return candidateCells;
 	};
 
 	var mainGame = new Game(10);
