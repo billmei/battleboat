@@ -21,9 +21,7 @@
 	 */
 	function Game(size) {
 		Game.size = size;
-		this.gameWon = false;
 		this.shotsTaken = 0;
-		this.maxAllowedShots = 60; // You lose if you take more shots than this
 		this.createGrid();
 		this.initialize();
 	}
@@ -34,10 +32,8 @@
 	Game.PLAYER_0 = 0;
 	Game.PLAYER_1 = 1;
 
-	Game.prototype.updateShots = function() {
+	Game.prototype.incrementShots = function() {
 		this.shotsTaken++;
-		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
-		document.querySelector('.ammo-counter').textContent = ammoRemaining;
 	};
 	Game.prototype.updateRoster = function(targetFleet) {
 		targetFleet.fleetRoster.forEach(function(ithShip, index, array){
@@ -47,13 +43,12 @@
 		});
 	};
 	Game.prototype.checkIfWon = function() {
-		if (this.player0fleet.allShipsSunk()) {
-			this.gameWon = true;
+		if (this.player1fleet.allShipsSunk()) {
 			alert('Congratulations, you win!');
 			this.resetFogOfWar();
 			this.initialize();
-		} else if (this.shotsTaken >= this.maxAllowedShots) {
-			alert('Yarr! You ran out of ammo. Try again.');
+		} else if (this.player0fleet.allShipsSunk()) {
+			alert('Yarr! The computer sank all your ships. Try again.');
 			this.resetFogOfWar();
 			this.initialize();
 		}
@@ -82,12 +77,12 @@
 			// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
 			// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
 			targetFleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
-			this.updateShots();
+			this.incrementShots();
 			this.updateRoster(targetFleet);
 			this.checkIfWon();
 		} else {
 			targetGrid.updateCell(x, y, 'miss', targetPlayer);
-			this.updateShots();
+			this.incrementShots();
 			this.checkIfWon();
 		}
 
@@ -153,7 +148,6 @@
 
 		// Reset game variables
 		this.shotsTaken = 0;
-		this.gameWon = false;
 
 		// Reset fleet roster display
 		var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
@@ -169,7 +163,6 @@
 		}
 		this.player0fleet.placeShipsRandomly();
 		this.player1fleet.placeShipsRandomly();
-		document.querySelector('.ammo-counter').textContent = this.maxAllowedShots;
 	};
 
 	/**
