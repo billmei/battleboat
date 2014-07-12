@@ -53,6 +53,8 @@
 			this.initialize();
 		}
 	};
+
+	// Shots at the target player on the grid. Returns what the shot uncovered
 	Game.prototype.shoot = function(x, y, targetPlayer) {
 		var targetGrid;
 		var targetFleet;
@@ -68,9 +70,9 @@
 			}
 
 		if (targetGrid.containsDamagedShip(x, y)) {
-			// Do nothing
+			return null;
 		} else if (targetGrid.containsCannonball(x, y)) {
-			// Do nothing
+			return null;
 		} else if (targetGrid.containsUndamagedShip(x, y)) {
 			// update the board/grid
 			targetGrid.updateCell(x, y, 'hit', targetPlayer);
@@ -80,10 +82,12 @@
 			this.incrementShots();
 			this.updateRoster(targetFleet);
 			this.checkIfWon();
+			return Grid.TYPE_SHIP;
 		} else {
 			targetGrid.updateCell(x, y, 'miss', targetPlayer);
 			this.incrementShots();
 			this.checkIfWon();
+			return Grid.TYPE_MISS;
 		}
 
 	};
@@ -478,21 +482,21 @@
 	/**
 	 * Gets all the ship cells
 	 *
-	 * returns a zero-indexed JSON with all (x, y) coordinates of the ship:
+	 * returns an array with all (x, y) coordinates of the ship:
 	 * e.g.
-	 * {
-	 *	0:{'x':2, 'y':2},
-	 *	1:{'x':3, 'y':2},
-	 *	2:{'x':4, 'y':2}
-	 * }
+	 * [
+	 *	{'x':2, 'y':2},
+	 *	{'x':3, 'y':2},
+	 *	{'x':4, 'y':2}
+	 * ]
 	 */
 	Ship.prototype.getAllShipCells = function() {
-		var resultObject = {};
+		var resultObject = [];
 		for (var i = 0; i < this.shipLength; i++) {
 			if (this.direction === 0) {
-				resultObject[i] = {'x':this.xPosition + i, 'y':this.yPosition};
+				resultObject[i] = {'x': this.xPosition + i, 'y': this.yPosition};
 			} else {
-				resultObject[i] = {'x':this.xPosition, 'y':this.yPosition + i};
+				resultObject[i] = {'x': this.xPosition, 'y': this.yPosition + i};
 			}
 		}
 		return resultObject;
@@ -523,20 +527,65 @@
 	// Optimal battleship-playing AI
 	function AI(gameObject) {
 		this.gameObject = gameObject;
+		this.currentStrategy = 'spread';
+
+		this.unvisitedCells = [];
+		for (var i = 0; i < Game.size; i++ ) {
+			for (var j = 0; j < Game.size; j ++) {
+				// mod(2) to give only cells in parity order.
+				if ((i + j) % 2 === 0) {
+					this.unvisitedCells.push({'x': i, 'y': j});
+				}
+			}
+		}
 	}
-	AI.prototype.hunt = function() {
-		// body...
+	AI.prototype.spread = function() {
+		// shoots randomly only in parity grid order for now
+		var randomCoords = Math.floor(this.unvisitedCells.length * Math.random());
+		var randomX = this.unvisitedCells[randomCoords].x;
+		var randomY = this.unvisitedCells[randomCoords].y;
+
+		var result = this.gameObject.shoot(randomX, randomY, Game.PLAYER_0);
+		if (result === Grid.TYPE_SHIP) {
+			this.currentStrategy = 'chase';
+		} else if (result === Grid.TYPE_MISS) {
+			this.currentStrategy = 'spread';
+		}
+
+		this.lastVisitedCell = this.unvisitedCells[randomCoords];
+		this.unvisitedCells.splice(randomCoords, 1);
 	};
-	AI.prototype.target = function() {
-		// body...
+	AI.prototype.chase = function() {
+		var candidateCells = [];
+		// 4 = four cardinal directions
+		for (var i = 0; i < 4; i++) {
+			// Make sure the candidate cell is inside the grid
+			if (this.lastVisitedCell.x + 1 > Game.size) {
+
+			}
+			if (this.lastVisitedCell.y + 1 > Game.size) {
+
+			}
+			if (this.lastVisitedCell.x - 1 < 0) {
+
+			}
+			if (this.lastVisitedCell.y - 1 < 0) {
+
+			}
+			
+			
+		}
+
 	};
 	AI.prototype.shoot = function() {
-		// shoots randomly for now
-		var randomX = Math.floor(10*Math.random());
-		var randomY = Math.floor(10*Math.random());
-		this.gameObject.shoot(randomX, randomY, Game.PLAYER_0);
+		if (this.currentStrategy === 'spread') {
+			this.spread();
+		} else if (this.currentStrategy === 'chase') {
+			this.chase();
+		}
 	};
 
 	var mainGame = new Game(10);
 	var robot = new AI(mainGame);
 })();
+
