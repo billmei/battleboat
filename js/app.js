@@ -21,9 +21,8 @@
 	 * @param numShips
 	 * @constructor
 	 */
-	function Game(size, numShips) {
-		this.size = size;
-		this.numShips = numShips;
+	function Game(size) {
+		Game.size = size;
 		this.gameWon = false;
 		this.currentTurn = Game.PLAYER_0;
 		this.shotsTaken = 0;
@@ -31,6 +30,8 @@
 		this.createGrid();
 		this.initialize();
 	}
+	Game.size = 10; // Default grid size is 10x10
+
 	// You are player 0 and the computer is player 1
 	Game.PLAYER_0 = 0;
 	Game.PLAYER_1 = 1;
@@ -63,15 +64,15 @@
 		var grid;
 		var fleet;
 		if (targetPlayer === Game.PLAYER_0) {
-			fleet = this.player0fleet;
 			grid = this.player0grid;
+			fleet = this.player0fleet;
 		} else if (targetPlayer === Game.PLAYER_1) {
 			grid = this.player1grid;
 			fleet = this.player1fleet;
 		} else {
 			// Should never be called
 			console.log("There was an error trying to find the correct player to target");
-		}
+			}
 
 		if (grid.containsDamagedShip(x, y)) {
 			// Do nothing
@@ -103,15 +104,14 @@
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 
 		// I couldn't figure out how to avoid referencing the global variable here
-		console.log(Game.PLAYER_1);
 		mainGame.shoot(x, y, Game.PLAYER_1);
 	};
 	/**
 	 * Resets the fog of war
 	 */
 	Game.prototype.resetFogOfWar = function() {
-		for (var i = 0; i < this.size; i++) {
-			for (var j = 0; j < this.size; j++) {
+		for (var i = 0; i < Game.size; i++) {
+			for (var j = 0; j < Game.size; j++) {
 				this.player0grid.updateCell(i, j, 'empty', Game.PLAYER_0);
 				this.player1grid.updateCell(i, j, 'empty', Game.PLAYER_1);
 			}
@@ -125,8 +125,8 @@
 		var gridDiv = document.querySelectorAll('.grid');
 		for (var grid = 0; grid < gridDiv.length; grid++) {
 			gridDiv[grid].removeChild(gridDiv[grid].querySelector('.no-js')); // Removes the no-js warning
-			for (var i = 0; i < this.size; i++) {
-				for (var j = 0; j < this.size; j++) {
+			for (var i = 0; i < Game.size; i++) {
+				for (var j = 0; j < Game.size; j++) {
 					var el = document.createElement('div');
 					el.setAttribute('data-x', i);
 					el.setAttribute('data-y', j);
@@ -141,11 +141,10 @@
 	 * Initializes the game
 	 */
 	Game.prototype.initialize = function() {
-		this.player0grid = new Grid(Game.PLAYER_0, this.size);
-		this.player1grid = new Grid(Game.PLAYER_1, this.size);
-
-		this.player0fleet = new Fleet(Game.PLAYER_0, this.numShips, this);
-		this.player1fleet = new Fleet(Game.PLAYER_1, this.numShips, this);
+		this.player0grid = new Grid(Game.size);
+		this.player1grid = new Grid(Game.size);
+		this.player0fleet = new Fleet(this.player0grid);
+		this.player1fleet = new Fleet(this.player1grid);
 
 		// Reset game variables
 		this.shotsTaken = 0;
@@ -170,11 +169,10 @@
 
 	/**
 	 * Grid Object
-	 * @param player
 	 * @param size
 	 * @constructor
 	 */
-	function Grid(player, size) {
+	function Grid(size) {
 		this.size = size;
 		this.cells = [];
 		this.initialize();
@@ -211,13 +209,18 @@
 	 * @param x
 	 * @param y
 	 * @param type
+	 * @param targetPlayer
 	 */
 	Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 		var player;
 		if (targetPlayer === Game.PLAYER_0) {
 			player = 'player-0-grid';
-		} else {
+		} else if (targetPlayer === Game.PLAYER_1) {
 			player = 'player-1-grid';
+		} else {
+			// Should never be called
+			console.log("There was an error trying to find the correct player's grid");
+		
 		}
 
 		switch (type) {
@@ -276,15 +279,12 @@
 	/**
 	 * Fleet object
 	 *
-	 * @param player
-	 * @param numShips
-	 * @param gameObject
+	 * @param playerOwner
 	 * @constructor
 	 */
-	function Fleet(player, numShips, gameObject) {
-		this.player = player;
-		this.numShips = numShips;
-		this.gameObject = gameObject;
+	function Fleet(playerGrid) {
+		this.numShips = AVAILABLE_SHIPS.length;
+		this.playerGrid = playerGrid;
 		this.fleetRoster = [];
 		this.populate();
 	}
@@ -297,7 +297,7 @@
 		for (var i = 0; i < this.numShips; i++) {
 			// loop over the ship types when numShips > AVAILABLE_SHIPS.length
 			var j = i % AVAILABLE_SHIPS.length;
-			this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.gameObject));
+			this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.playerGrid));
 		}
 	};
 	/**
@@ -371,12 +371,12 @@
 	 * Ship object
 	 *
 	 * @param type
-	 * @param gameObject
+	 * @param playerGrid
 	 * @constructor
 	 */
-	function Ship(type, gameObject) {
+	function Ship(type, playerGrid) {
 		this.damage = 0;
-		this.gameObject = gameObject;
+		this.playerGrid = playerGrid;
 		this.type = type;
 		switch (this.type) {
 			case AVAILABLE_SHIPS[0]:
@@ -395,7 +395,7 @@
 				this.shipLength = 2;
 				break;
 			default:
-				this.shipLength = 1;
+				this.shipLength = 3;
 				break;
 		}
 		this.maxDamage = this.shipLength;
@@ -415,11 +415,11 @@
 			// ...then check to make sure it doesn't collide with another ship
 			for (var i = 0; i < this.shipLength; i++) {
 				if (direction === 0) {
-					if (this.gameObject.player0grid.cells[x + i][y] === Grid.TYPE_SHIP) {
+					if (this.playerGrid.cells[x + i][y] === Grid.TYPE_SHIP) {
 						return false;
 					}
 				} else {
-					if (this.gameObject.player0grid.cells[x][y + i] === Grid.TYPE_SHIP) {
+					if (this.playerGrid.cells[x][y + i] === Grid.TYPE_SHIP) {
 						return false;
 					}
 				}
@@ -438,9 +438,9 @@
 	 */
 	Ship.prototype.withinBounds = function(x, y, direction) {
 		if (direction === 0) {
-			return x + this.shipLength <= this.gameObject.size;
+			return x + this.shipLength <= Game.size;
 		} else {
-			return y + this.shipLength <= this.gameObject.size;
+			return y + this.shipLength <= Game.size;
 		}
 	};
 	/**
@@ -472,7 +472,7 @@
 		// Make the CSS class sunk
 		var allCells = this.getAllShipCells();
 		for (var i = 0; i < this.shipLength; i++) {
-			this.gameObject.player0grid.updateCell(allCells[i].x, allCells[i].y, 'sunk', Game.PLAYER_0);
+			this.playerGrid.updateCell(allCells[i].x, allCells[i].y, 'sunk', Game.PLAYER_0);
 		}
 	};
 	/**
@@ -513,9 +513,9 @@
 		// direction === 1 when the ship is facing east/west
 		for (var i = 0; i < this.shipLength; i++) {
 			if (this.direction === 0) {
-				this.gameObject.player0grid.cells[x + i][y] = Grid.TYPE_SHIP;
+				this.playerGrid.cells[x + i][y] = Grid.TYPE_SHIP;
 			} else {
-				this.gameObject.player0grid.cells[x][y + i] = Grid.TYPE_SHIP;
+				this.playerGrid.cells[x][y + i] = Grid.TYPE_SHIP;
 			}
 		}
 	};
@@ -531,5 +531,5 @@
 		// body...
 	};
 
-	var mainGame = new Game(10, 5);
+	var mainGame = new Game(10);
 })();
