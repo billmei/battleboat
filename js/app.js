@@ -638,17 +638,6 @@
 			Game.PLAYER_0
 			);
 
-		// DEBUGGING
-		console.log('======================');
-		for (var _i = 0; _i < candidateCells.length; _i++) {
-			console.log('Candidate cells ' + _i + ': ' + '(x='+ candidateCells[_i].x+', y='+candidateCells[_i].y+')');
-		}
-		console.log('Chase direction: ' + this.chaseDirection);
-		console.log('this.lastVisitedCell: ' +  '(x='+ this.lastVisitedCell.x+', y='+this.lastVisitedCell.y+')');
-		console.log('targeted cell: ' + '(x='+ candidateCells[chosenDirection].x+', y='+candidateCells[chosenDirection].y+')');
-		console.log('target result: ' + result);
-		// DEBUGGING
-
 
 		// TODO: If there are any visible hit cells on the grid at any time we
 		// have to go back and try to sink that ship
