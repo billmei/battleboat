@@ -200,7 +200,7 @@
 			var row = [];
 			this.cells[x] = row;
 			for (var y = 0; y < this.size; y++) {
-				row.push(0);
+				row.push(Grid.TYPE_EMPTY);
 			}
 		}
 	};
@@ -528,6 +528,8 @@
 	function AI(gameObject) {
 		this.gameObject = gameObject;
 		this.currentStrategy = 'spread';
+		this.visibleGrid = [];
+		this.initializeGrid();
 
 		this.unvisitedCells = [];
 		for (var i = 0; i < Game.size; i++ ) {
@@ -539,6 +541,15 @@
 			}
 		}
 	}
+	AI.prototype.initializeGrid = function() {
+		for (var x = 0; x < Game.size; x++) {
+			var row = [];
+			this.visibleGrid[x] = row;
+			for (var y = 0; y < Game.size; y++) {
+				row.push(Grid.TYPE_EMPTY);
+			}
+		}
+	};
 	AI.prototype.spread = function() {
 		// shoots randomly only in parity grid order for now
 		var randomCoords = Math.floor(this.unvisitedCells.length * Math.random());
@@ -551,29 +562,147 @@
 		} else if (result === Grid.TYPE_MISS) {
 			this.currentStrategy = 'spread';
 		}
-
 		this.lastVisitedCell = this.unvisitedCells[randomCoords];
+		
+		// Update the AI's visible grid with the result
+		if (result !== null) {
+			this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
+		}
+
 		this.unvisitedCells.splice(randomCoords, 1);
 	};
 	AI.prototype.chase = function() {
 		var candidateCells = [];
-		// 4 = four cardinal directions
-		for (var i = 0; i < 4; i++) {
-			// Make sure the candidate cell is inside the grid
-			if (this.lastVisitedCell.x + 1 > Game.size) {
+		var targetedCell = this.lastVisitedCell;
+		if (this.chaseDirection === null || 
+			this.chaseDirection === undefined) {
+			this.chaseDirection = 'none';
+		}
+		if (this.firstHitCell === null ||
+			this.firstHitCell === undefined) {
+			this.firstHitCell = this.lastVisitedCell;
+		}
+		var chosenDirection;
+		var result;
+
+		candidateCells = getLegalNeighbors();
+
+
+		var north = {
+			'x': this.lastVisitedCell.x - 1,
+			'y': this.lastVisitedCell.y,
+			'directionName': 'north'
+		};
+		var east = {
+			'x': this.lastVisitedCell.x,
+			'y': this.lastVisitedCell.y + 1,
+			'directionName': 'east'
+		};
+		var south = {
+			'x': this.lastVisitedCell.x + 1,
+			'y': this.lastVisitedCell.y,
+			'directionName': 'south'
+		};
+		var west = {
+			'x': this.lastVisitedCell.x,
+			'y': this.lastVisitedCell.y - 1,
+			'directionName': 'west'
+		};
+
+		// Make sure the candidate cell is inside the grid, and unvisited
+		if (north.x > 0 &&
+			this.visibleGrid[north.x][north.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(north);
+		}
+		if (east.y <= Game.size &&
+			this.visibleGrid[east.x][east.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(east);
+		}
+		if (south.x <= Game.size &&
+			this.visibleGrid[south.x][south.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(south);
+		}
+		if (west.y > 0 &&
+			this.visibleGrid[west.x][west.y] === Grid.TYPE_EMPTY) {
+			candidateCells.push(west);
+		}
+
+		// Choose a random chase direction if one hasn't been established yet
+		// Otherwise, keep chasing in the direction you were going in
+		if (this.chaseDirection === 'none') {
+			chosenDirection = Math.floor(candidateCells.length * Math.random());
+		} else {
+			// You also need to select a random chase direction if your desired
+			// chase direction is out of bounds.
+			chosenDirection = Math.floor(candidateCells.length * Math.random());
+			for (var i = 0; i < candidateCells.length; i++) {
+				if (candidateCells[i].directionName === this.chaseDirection) {
+					chosenDirection = candidateCells[i];
+				}
+			}
+		}
+
+		// If there aren't any candidate cells, we need to jump to the next
+		// unexplored cell in the last direction
+		if (candidateCells.length === 0) {
+			this.lastVisitedCell = this.firstHitCell;
+			if (this.chaseDirection !== 'none') {
+				switch (this.chaseDirection) {
+					case 'north':
+						this.chaseDirection = 'south';
+						break;
+					case 'east':
+						this.chaseDirection = 'west';
+						break;
+					case 'south':
+						this.chaseDirection = 'north';
+						break;
+					case 'west':
+						this.chaseDirection = 'east';
+						break;
+					default:
+						this.chaseDirection = 'none';
+						break;
+				}
 
 			}
-			if (this.lastVisitedCell.y + 1 > Game.size) {
+			this.chase();
+			// break here because we've run chase() above
+			return;
+		} else {
+			// Shoot and store the result
+			result = this.gameObject.shoot(
+				candidateCells[chosenDirection].x,
+				candidateCells[chosenDirection].y,
+				Game.PLAYER_0
+				);
+		}
 
-			}
-			if (this.lastVisitedCell.x - 1 < 0) {
+		
 
-			}
-			if (this.lastVisitedCell.y - 1 < 0) {
+		// Set the next root cell to be in the current chase direction
+		this.lastVisitedCell = candidateCells[chosenDirection];
+		
+		// Update the AI's visible grid with the result
+		if (result !== null) {
+			this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
+		}
 
+		if (!this.isCurrentShipSunk()) {
+			// If you hit a ship, keep chasing in the same direction
+			if (result === Grid.TYPE_SHIP) {
+				this.chaseDirection = candidateCells[chosenDirection].directionName;
+			// If you don't hit a ship, keep trying cells around the same root node
+			} else if (result === Grid.TYPE_MISS) {
+				this.lastVisitedCell = targetedCell;
+				this.chaseDirection = 'none';
 			}
-			
-			
+			this.currentStrategy = 'chase';
+		} else {
+			// Reset your temporary variables before going back to spread strategy
+			this.chaseDirection = null;
+			this.firstHitCell = null;
+			this.currentStrategy = 'spread';
 		}
 
 	};
@@ -584,8 +713,80 @@
 			this.chase();
 		}
 	};
+	AI.prototype.isCurrentShipSunk = function() {
+		return false;
+	};
+	AI.prototype.getLegalNeighbors = function() {
+
+	};
 
 	var mainGame = new Game(10);
 	var robot = new AI(mainGame);
 })();
 
+// IndexOf workaround for IE browsers that don't support it
+// From MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function (searchElement, fromIndex) {
+
+    var k;
+
+    // 1. Let O be the result of calling ToObject passing
+    //    the this value as the argument.
+    if (this === null || this === undefined) {
+      throw new TypeError('"this" is null or not defined');
+    }
+
+    var O = Object(this);
+
+    // 2. Let lenValue be the result of calling the Get
+    //    internal method of O with the argument "length".
+    // 3. Let len be ToUint32(lenValue).
+    var len = O.length >>> 0;
+
+    // 4. If len is 0, return -1.
+    if (len === 0) {
+      return -1;
+    }
+
+    // 5. If argument fromIndex was passed let n be
+    //    ToInteger(fromIndex); else let n be 0.
+    var n = +fromIndex || 0;
+
+    if (Math.abs(n) === Infinity) {
+      n = 0;
+    }
+
+    // 6. If n >= len, return -1.
+    if (n >= len) {
+      return -1;
+    }
+
+    // 7. If n >= 0, then Let k be n.
+    // 8. Else, n<0, Let k be len - abs(n).
+    //    If k is less than 0, then let k be 0.
+    k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+    // 9. Repeat, while k < len
+    while (k < len) {
+      var kValue;
+      // a. Let Pk be ToString(k).
+      //   This is implicit for LHS operands of the in operator
+      // b. Let kPresent be the result of calling the
+      //    HasProperty internal method of O with argument Pk.
+      //   This step can be combined with c
+      // c. If kPresent is true, then
+      //    i.  Let elementK be the result of calling the Get
+      //        internal method of O with the argument ToString(k).
+      //   ii.  Let same be the result of applying the
+      //        Strict Equality Comparison Algorithm to
+      //        searchElement and elementK.
+      //  iii.  If same is true, return k.
+      if (k in O && O[k] === searchElement) {
+        return k;
+      }
+      k++;
+    }
+    return -1;
+  };
+}
