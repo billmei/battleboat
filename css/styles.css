@@ -22,7 +22,7 @@ div {
 }
 .container {
 	position: relative;
-	width: 420px;
+	width: 880px;
 	text-align: center;
 	margin: 20px auto 100px auto;
 }
@@ -57,7 +57,10 @@ div {
 	.sunk {
 		text-decoration: line-through;
 	}
+
 .grid {
+	vertical-align: top;
+	display: inline-block;
 	padding: 5px;
 	height: 420px;
 	width: 420px;
@@ -66,6 +69,9 @@ div {
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 }
+	.grid:first-child {
+		margin-right: 20px;
+	}
 	.no-js {
 		width: 300px;
 		height: 300px;

@@ -2,13 +2,15 @@
 	// Battleboat
 	// Bill Mei, 2014
 	// MIT License
-
+	
 	// This is one-player for now which means you don't get to place
 	// your own ships yet but I'm going to update that later.
 	// Currently the computer just places ships at random and you
 	// have to guess where they are but eventually I want to
 	// implement an AI based on the DataGenetics algorithm:
 	// http://www.datagenetics.com/blog/december32011/
+
+	// TODO: Google Analytics to track win/loss rates against real human players
 
 	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
@@ -23,11 +25,16 @@
 		this.size = size;
 		this.numShips = numShips;
 		this.gameWon = false;
+		this.currentTurn = this.PLAYER_0;
 		this.shotsTaken = 0;
 		this.maxAllowedShots = 60; // You lose if you take more shots than this
 		this.createGrid();
 		this.initialize();
 	}
+	// You are player 0 and the computer is player 1
+	Game.prototype.PLAYER_0 = 0;
+	Game.prototype.PLAYER_1 = 1;
+
 	Game.prototype.updateShots = function() {
 		this.shotsTaken++;
 		var ammoRemaining = this.maxAllowedShots - this.shotsTaken;
@@ -52,22 +59,31 @@
 			this.initialize();
 		}
 	};
-	Game.prototype.shoot = function(x, y) {
-		if (this.player0grid.containsDamagedShip(x, y)) {
+	Game.prototype.shoot = function(x, y, targetPlayer) {
+		var grid;
+		var fleet;
+		if (targetPlayer === this.PLAYER_1) {
+			grid = this.player1grid;
+			fleet = this.player1fleet;
+		} else {
+			grid = this.player0grid;
+			fleet = this.player0fleet;
+		}
+		if (grid.containsDamagedShip(x, y)) {
 			// Do nothing
-		} else if (this.player0grid.containsCannonball(x, y)) {
+		} else if (grid.containsCannonball(x, y)) {
 			// Do nothing
-		} else if (this.player0grid.containsUndamagedShip(x, y)) {
+		} else if (grid.containsUndamagedShip(x, y)) {
 			// update the board/grid
-			this.player0grid.updateCell(x, y, 'hit');
+			grid.updateCell(x, y, 'hit');
 			// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
 			// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
-			this.player0fleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
+			fleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
 			this.updateShots();
 			this.updateRoster();
 			this.checkIfWon();
 		} else {
-			this.player0grid.updateCell(x, y, 'miss');
+			grid.updateCell(x, y, 'miss');
 			this.updateShots();
 			this.checkIfWon();
 		}
@@ -83,7 +99,7 @@
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 
 		// I couldn't figure out how to avoid referencing the global variable here
-		mainGame.shoot(x, y);
+		mainGame.shoot(x, y, this.PLAYER_0);
 	};
 	/**
 	 * Resets the fog of war
@@ -92,6 +108,7 @@
 		for (var i = 0; i < this.size; i++) {
 			for (var j = 0; j < this.size; j++) {
 				this.player0grid.updateCell(i, j, 'empty');
+				this.player1grid.updateCell(i, j, 'empty');
 			}
 		}
 	};
@@ -99,29 +116,31 @@
 	 * Generates the HTML divs for the grid
 	 */
 	Game.prototype.createGrid = function() {
-		// Generates the HTML grid
-		var gridDiv = document.querySelector('.grid');
-		gridDiv.removeChild(gridDiv.querySelector('.no-js')); // Removes the no-js warning
-		for (var i = 0; i < this.size; i++) {
-			for (var j = 0; j < this.size; j++) {
-				var el = document.createElement('div');
-				el.setAttribute('data-x', i);
-				el.setAttribute('data-y', j);
-				el.setAttribute('class', 'grid-cell grid-cell-' + i + '-' + j);
-				gridDiv.appendChild(el);
+		// Generates the HTML grids for both players
+		var gridDiv = document.querySelectorAll('.grid');
+		for (var grid = 0; grid < gridDiv.length; grid++) {
+			gridDiv[grid].removeChild(gridDiv[grid].querySelector('.no-js')); // Removes the no-js warning
+			for (var i = 0; i < this.size; i++) {
+				for (var j = 0; j < this.size; j++) {
+					var el = document.createElement('div');
+					el.setAttribute('data-x', i);
+					el.setAttribute('data-y', j);
+					el.setAttribute('class', 'grid-cell grid-cell-' + i + '-' + j);
+					gridDiv[grid].appendChild(el);
+				}
 			}
-		}
+		}		
+		
 	};
 	/**
 	 * Initializes the game
 	 */
 	Game.prototype.initialize = function() {
-		// You are player 0 and the computer is player 1
-		this.player0grid = new Grid(0, this.size);
-		// this.player1grid = new Grid(1, this.size);
+		this.player0grid = new Grid(this.PLAYER_0, this.size);
+		this.player1grid = new Grid(this.PLAYER_1, this.size);
 
-		this.player0fleet = new Fleet(0, this.numShips, this);
-		// this.player1fleet = new Fleet(1, this.numShips, this);
+		this.player0fleet = new Fleet(this.PLAYER_0, this.numShips, this);
+		this.player1fleet = new Fleet(this.PLAYER_1, this.numShips, this);
 
 		// Reset game variables
 		this.shotsTaken = 0;
@@ -133,12 +152,14 @@
 			playerRoster[i].setAttribute('class', '');
 		}
 
-		// add a click listener for the Grid.shoot() method for all cells
-		var gridCells = document.querySelector('.grid').childNodes;
+		// Add a click listener for the Grid.shoot() method for all cells
+		// Only add this listener to the computer's grid
+		var gridCells = document.querySelector('.player-1-grid').childNodes;
 		for (var j = 0; j < gridCells.length; j++) {
 			gridCells[j].addEventListener('click', this.clickListener, false);
 		}
 		this.player0fleet.placeShipsRandomly();
+		this.player1fleet.placeShipsRandomly();
 		document.querySelector('.ammo-counter').textContent = this.maxAllowedShots;
 	};
 
@@ -149,34 +170,40 @@
 	 * @constructor
 	 */
 	function Grid(player, size) {
-		// Grid code:
-		// 0 = water (empty)
-		// 1 = undamaged ship
-		// 2 = water with a cannonball in it (missed shot)
-		// 3 = damaged ship (hit shot)
-		// 4 = sunk ship
 		this.size = size;
 		this.cells = [];
-		this.initialize();
-	}
-	/**
-	 * Grid initialization routine
-	 */
-	Grid.prototype.initialize = function() {
-		for (var x = 0; x < this.size; x++) {
-			var row = [];
-			this.cells[x] = row;
-			for (var y = 0; y < this.size; y++) {
-				row.push(0);
+
+		this.getCell = function(x, y) {
+			return this.cells[x][y];
+		};
+		this.setCell = function(x, y, value) {
+			this.cells[x][y] = value;
+		};
+		this.initializeCells = function() {
+			for (var x = 0; x < this.size; x++) {
+				var row = [];
+				this.cells[x] = row;
+				for (var y = 0; y < this.size; y++) {
+					row.push(0);
+				}
 			}
-		}
-	};
+		};
+
+		this.initializeCells();
+	}
 	// Possible values for the parameter `type` (string)
-	Grid.prototype.TYPE_EMPTY = 'empty';
-	Grid.prototype.TYPE_SHIP = 'ship';
-	Grid.prototype.TYPE_MISS = 'miss';
-	Grid.prototype.TYPE_HIT = 'hit';
-	Grid.prototype.TYPE_SUNK = 'sunk';
+	Grid.prototype.CSS_TYPE_EMPTY = 'empty';
+	Grid.prototype.CSS_TYPE_SHIP = 'ship';
+	Grid.prototype.CSS_TYPE_MISS = 'miss';
+	Grid.prototype.CSS_TYPE_HIT = 'hit';
+	Grid.prototype.CSS_TYPE_SUNK = 'sunk';
+	// Grid code:
+	Grid.prototype.TYPE_EMPTY = 0; // 0 = water (empty)
+	Grid.prototype.TYPE_SHIP = 1; // 1 = undamaged ship
+	Grid.prototype.TYPE_MISS = 2; // 2 = water with a cannonball in it (missed shot)
+	Grid.prototype.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
+	Grid.prototype.TYPE_SUNK = 4; // 4 = sunk ship
+
 	/**
 	 * Updates a cell class based on the type passed in
 	 *
@@ -186,23 +213,23 @@
 	 */
 	Grid.prototype.updateCell = function(x, y, type) {
 		switch (type) {
-			case this.TYPE_EMPTY:
-				this.cells[x][y] = 0;
+			case this.CSS_TYPE_EMPTY:
+				setCell(x, y, this.TYPE_EMPTY);
 				break;
-			case this.TYPE_SHIP:
-				this.cells[x][y] = 1;
+			case this.CSS_TYPE_SHIP:
+				setCell(x, y, this.TYPE_SHIP);
 				break;
-			case this.TYPE_MISS:
-				this.cells[x][y] = 2;
+			case this.CSS_TYPE_MISS:
+				setCell(x, y, this.TYPE_MISS);
 				break;
-			case this.TYPE_HIT:
-				this.cells[x][y] = 3;
+			case this.CSS_TYPE_HIT:
+				setCell(x, y, this.TYPE_HIT);
 				break;
-			case this.TYPE_SUNK:
-				this.cells[x][y] = 4;
+			case this.CSS_TYPE_SUNK:
+				setCell(x, y, this.TYPE_SUNK);
 				break;
 			default:
-				this.cells[x][y] = 0;
+				setCell(x, y, this.TYPE_EMPTY);
 				break;
 		}
 		var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type];
@@ -216,7 +243,7 @@
 	 * @returns {boolean}
 	 */
 	Grid.prototype.containsUndamagedShip = function(x, y) {
-		return this.cells[x][y] === 1;
+		return getCell(x, y) === this.TYPE_SHIP;
 	};
 	/**
 	 * Checks to see if a cell contains a cannonball
@@ -226,7 +253,7 @@
 	 * @returns {boolean}
 	 */
 	Grid.prototype.containsCannonball = function(x, y) {
-		return this.cells[x][y] === 2;
+		return getCell(x, y) === this.TYPE_MISS;
 	};
 	/**
 	 * Checks to see if a cell contains a damaged ship
@@ -235,7 +262,7 @@
 	 * @returns {boolean}
 	 */
 	Grid.prototype.containsDamagedShip = function(x, y) {
-		return this.cells[x][y] === 3 || this.cells[x][y] === 4;
+		return getCell(x, y) === this.TYPE_HIT || getCell(x, y) === this.TYPE_SUNK;
 	};
 
 	/**
@@ -380,11 +407,11 @@
 			// ...then check to make sure it doesn't collide with another ship
 			for (var i = 0; i < this.shipLength; i++) {
 				if (direction === 0) {
-					if (this.gameObject.player0grid.cells[x + i][y] === 1) {
+					if (this.gameObject.player0grid.getCell(x + i, y) === Grid.TYPE_SHIP) {
 						return false;
 					}
 				} else {
-					if (this.gameObject.player0grid.cells[x][y + i] === 1) {
+					if (this.gameObject.player0grid.getCell(x, y + i) === Grid.TYPE_SHIP) {
 						return false;
 					}
 				}
@@ -478,11 +505,22 @@
 		// direction === 1 when the ship is facing east/west
 		for (var i = 0; i < this.shipLength; i++) {
 			if (this.direction === 0) {
-				this.gameObject.player0grid.cells[x + i][y] = 1;
+				this.gameObject.player0grid.setCell(x + i, y, Grid.TYPE_SHIP);
 			} else {
-				this.gameObject.player0grid.cells[x][y + i] = 1;
+				this.gameObject.player0grid.setCell(x, y + i, Grid.TYPE_SHIP);
 			}
 		}
+	};
+
+	// Optimal battleship-playing AI
+	function AI() {
+
+	}
+	AI.prototype.hunt = function() {
+		// body...
+	};
+	AI.prototype.target = function() {
+		// body...
 	};
 
 	var mainGame = new Game(10, 5);
