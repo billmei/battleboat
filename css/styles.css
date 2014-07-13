@@ -110,29 +110,28 @@ div {
 		border-radius: 2px;
 	}
 		.grid-cell:hover {
-			cursor: pointer;
-			background-color: #7EB3DA;
+			cursor: pointer; /* Fallback */
+			background-color: #66A3D2;
 		}
-		.player-0-grid .grid-cell {
-			background-color: #EEEEEE;
+		.player-0-grid .grid-cell:hover {
+			background-color: #99C2E1;
 		}
 		.player-1-grid .grid-cell:hover {
 			cursor: url('../img/crosshair.png') 16 16, crosshair;
 		}
-	.grid-ship, .player-0-grid .grid-ship {
-		background-color: #C0C0C0;
+	.grid-ship {
+		background-color: #808080;
 	}
 	.grid-miss, .grid-miss:hover {
-		background-color: #EEEEEE;
+		/*background-color: #EEEEEE;*/
+		background-color: #E1EDF6;
 	}
-		.player-0-grid .grid-miss {
-			background-image: url('../img/cross-icon.png');
-			background-position: center;
-			background-repeat: no-repeat;
-		}
-	.grid-hit, .player-0-grid .grid-hit, .grid-hit:hover {
+	.grid-hit, .grid-hit:hover {
 		background-color: #F60018;
+		background-image: url('../img/cross-icon.png');
+		background-position: center;
+		background-repeat: no-repeat;
 	}
-	.grid-sunk, .player-0-grid .grid-sunk, .grid-sunk:hover {
+	.grid-sunk, .grid-sunk:hover {
 		background-color: #222222;
 	}
