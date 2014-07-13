@@ -133,7 +133,7 @@
 					gridDiv[grid].appendChild(el);
 				}
 			}
-		}		
+		}
 		
 	};
 	/**
