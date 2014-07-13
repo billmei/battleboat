@@ -116,10 +116,10 @@ div {
 		.player-0-grid .grid-cell:hover {
 			background-color: #99C2E1;
 		}
-		.player-1-grid .grid-cell:hover {
+		.player-1-grid .grid-cell:hover, .player-1-grid:hover {
 			cursor: url('../img/crosshair.png') 16 16, crosshair;
 		}
-	.grid-ship {
+	.grid-ship, .player-0-grid .grid-ship:hover {
 		background-color: #808080;
 	}
 	.grid-miss, .grid-miss:hover {
