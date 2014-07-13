@@ -4,6 +4,9 @@
 	// MIT License
 	
 	// TODO: Google Analytics to track win/loss rates against real human players
+	// TODO: Use analytics to track average number of shots taken
+	// TODO: If the player clicks on a cell they've already uncovered, the AI
+	// should not immediately shoot because it's still the player's turn
 
 	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
@@ -162,8 +165,8 @@
 		for (var j = 0; j < gridCells.length; j++) {
 			gridCells[j].addEventListener('click', this.clickListener, false);
 		}
-		this.player0fleet.placeShipsRandomly();
-		this.player1fleet.placeShipsRandomly();
+		this.player0fleet.placeShips();
+		this.player1fleet.placeShips();
 	};
 
 	/**
@@ -298,6 +301,23 @@
 			// loop over the ship types when numShips > AVAILABLE_SHIPS.length
 			var j = i % AVAILABLE_SHIPS.length;
 			this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.playerGrid, this.player));
+		}
+	};
+	Fleet.prototype.placeShips = function() {
+		var shipCoords;
+		if (this.player === Game.PLAYER_0) {
+			this.placeShipsRandomly();
+			for (var i = 0; i < this.fleetRoster.length; i++) {
+				shipCoords = this.fleetRoster[i].getAllShipCells();
+				for (var j = 0; j < shipCoords.length; j++) {
+					console.log(this.playerGrid);
+					this.playerGrid.updateCell(shipCoords[j].x, shipCoords[j].y, 'ship', this.player);
+				}
+			}
+
+		} else if (this.player === Game.PLAYER_1) {
+			// TODO: Avoid placing ships too close to each other
+			this.placeShipsRandomly();
 		}
 	};
 	/**
@@ -547,6 +567,13 @@
 			}
 		}
 	};
+	AI.prototype.shoot = function() {
+		if (this.currentStrategy === 'scout') {
+			this.scout();
+		} else if (this.currentStrategy === 'chase') {
+			this.chase();
+		}
+	};
 	AI.prototype.scout = function() {
 		// shoots randomly only in parity grid order for now
 		var randomCoords = Math.floor(this.unvisitedCells.length * Math.random());
@@ -601,7 +628,6 @@
 				}
 			}
 		}
-
 
 		// If there aren't any candidate cells, we need to jump to the next
 		// unexplored cell in the last direction
@@ -664,13 +690,6 @@
 			this.chaseDirection = 'none';
 		}
 
-	};
-	AI.prototype.shoot = function() {
-		if (this.currentStrategy === 'scout') {
-			this.scout();
-		} else if (this.currentStrategy === 'chase') {
-			this.chase();
-		}
 	};
 	AI.prototype.isCurrentShipSunk = function(x, y) {
 		return this.gameObject.player0fleet.findShipByLocation(x, y).isSunk();
