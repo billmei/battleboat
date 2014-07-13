@@ -578,7 +578,6 @@ Ship.DIRECTION_HORIZONTAL = 1;
 // Optimal battleship-playing AI
 function AI(gameObject) {
 	this.gameObject = gameObject;
-	this.currentStrategy = 'scout';
 	this.virtualGrid = new Grid(Game.size);
 	this.virtualFleet = new Fleet(this.virtualGrid, Game.VIRTUAL_PLAYER);
 
@@ -596,18 +595,10 @@ AI.prototype.initializeProbabilities = function() {
 		}
 	}
 };
-AI.prototype.shoot = function() {
-	// if (this.currentStrategy === 'scout') {
-		this.scout();
-	// } else if (this.currentStrategy === 'chase') {
-		// this.chase();
-	// }
-	this.updateProbabilities();
-};
 // Scouts the grid based on max probability
-AI.prototype.scout = function() {
+AI.prototype.shoot = function() {
 	var maxProbability = 0;
-	var maxProbCoords = {'directionName': 'none'};
+	var maxProbCoords = {};
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
 			if (this.probabilityGrid[x][y] > maxProbability) {
@@ -619,30 +610,12 @@ AI.prototype.scout = function() {
 	}
 
 	var result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, Game.HUMAN_PLAYER);
-	if (result === Grid.TYPE_HIT) {
-		this.currentStrategy = 'chase';
-	} else if (result === Grid.TYPE_MISS) {
-		this.currentStrategy = 'scout';
-	}
-
-	this.lastVisitedCell = maxProbCoords;
-
-	// Update the AI's visible grid with the result
-	if (result === null || result === undefined) {
-		// If the result doesn't exist it means we've visited the
-		// cell previously while the algorithm was in chase mode.
-		// TODO: Since this should really never happen, make sure
-		// the chase strategy removes any visited cells from
-		// this.unvisitedCells
-		result = Grid.TYPE_MISS;
-		result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, Game.HUMAN_PLAYER);
-		alert('should never becalled');
-	}
-	this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
+	
+	this.virtualGrid.cells[maxProbCoords.x][maxProbCoords.y] = result;
 
 	// If you hit a ship, check to make sure if you've sunk it.
 	if (result === Grid.TYPE_HIT) {
-		var humanShip = this.findHumanShip(this.lastVisitedCell.x, this.lastVisitedCell.y);
+		var humanShip = this.findHumanShip(maxProbCoords.x, maxProbCoords.y);
 		if (humanShip.isSunk()) {
 			// Remove any ships from the roster that have been sunk
 			var shipTypes = [];
@@ -659,112 +632,10 @@ AI.prototype.scout = function() {
 			}
 			
 		}
-	// If you don't hit a ship, keep trying cells around the same root node
-	}
-};
-AI.prototype.chase = function() {
-	var candidateCells = [];
-	var targetedCell = this.lastVisitedCell;
-	if (this.chaseDirection === null || 
-		this.chaseDirection === undefined) {
-		this.chaseDirection = 'none';
-	}
-	if (this.firstHitCell === null ||
-		this.firstHitCell === undefined) {
-		this.firstHitCell = this.lastVisitedCell;
-	}
-	var chosenDirection;
-	var result;
-
-	candidateCells = this.getLegalNeighbors();
-
-	// Choose a random chase direction if one hasn't been established yet
-	// Otherwise, keep chasing in the direction you were going in
-	if (this.chaseDirection === 'none') {
-		chosenDirection = Math.floor(candidateCells.length * Math.random());
-	} else {
-		// You also need to select a random chase direction if your desired
-		// chase direction is out of bounds.
-		chosenDirection = Math.floor(candidateCells.length * Math.random());
-		for (var i = 0; i < candidateCells.length; i++) {
-			if (candidateCells[i].directionName === this.chaseDirection) {
-				chosenDirection = i;
-			}
-		}
 	}
 
-	// If there aren't any candidate cells, we need to jump to the next
-	// unexplored cell in the last direction
-	if (candidateCells.length === 0) {
-		this.lastVisitedCell = this.firstHitCell;
-		if (this.chaseDirection !== 'none') {
-			switch (this.chaseDirection) {
-				case 'north':
-					this.chaseDirection = 'south';
-					break;
-				case 'east':
-					this.chaseDirection = 'west';
-					break;
-				case 'south':
-					this.chaseDirection = 'north';
-					break;
-				case 'west':
-					this.chaseDirection = 'east';
-					break;
-				default:
-					this.chaseDirection = 'none';
-					break;
-			}
-		}
-		candidateCells = this.getLegalNeighbors();
-	}
-	// Shoot and store the result
-	result = this.gameObject.shoot(
-		candidateCells[chosenDirection].x,
-		candidateCells[chosenDirection].y,
-		Game.HUMAN_PLAYER
-		);
-
-	// TODO: If there are any visible hit cells on the grid at any time we
-	// have to go back and try to sink that ship
-
-	// Set the next root cell to be in the current chase direction
-	this.lastVisitedCell = candidateCells[chosenDirection];
-	
-	// Update the AI's visible grid with the result
-	this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
-
-	// If you hit a ship, keep chasing in the same direction
-	if (result === Grid.TYPE_HIT) {
-		var humanShip = this.findHumanShip(this.lastVisitedCell.x, this.lastVisitedCell.y);
-		if (humanShip.isSunk()) {
-			// Remove any ships from the roster that have been sunk
-			var shipTypes = [];
-			for (var k = 0; k < this.virtualFleet.fleetRoster.length; k++) {
-				shipTypes.push(this.virtualFleet.fleetRoster[k].type);
-			}
-			var index = shipTypes.indexOf(humanShip.type);
-			this.virtualFleet.fleetRoster.splice(index, 1);
-
-			// Update the virtual grid with the sunk ship's cells
-			var shipCells = humanShip.getAllShipCells();
-			for (var _i = 0; _i < shipCells.length; _i++) {
-				this.virtualGrid.cells[shipCells[_i].x][shipCells[_i].y] = Grid.TYPE_SUNK;
-			}
-			
-			// Reset your temporary variables before going back to scout strategy
-			this.chaseDirection = null;
-			this.firstHitCell = null;
-			this.currentStrategy = 'scout';
-		} else {
-			this.chaseDirection = candidateCells[chosenDirection].directionName;
-		}
-	// If you don't hit a ship, keep trying cells around the same root node
-	} else if (result === Grid.TYPE_MISS) {
-		this.lastVisitedCell = targetedCell;
-		this.chaseDirection = 'none';
-	}
-
+	// Update probability grid after each shot
+	this.updateProbabilities();
 };
 AI.prototype.findHumanShip = function(x, y) {
 	return this.gameObject.humanFleet.findShipByCoords(x, y);
@@ -787,7 +658,7 @@ AI.prototype.updateProbabilities = function() {
 					coords = roster[i].getAllShipCells();
 					if (this.passesThroughHitCell(coords)) {
 						for (var j = 0; j < coords.length; j++) {
-							this.probabilityGrid[coords[j].x][coords[j].y] += AI.PROB_WEIGHT * this.numberOfHitCellsCovered(coords);
+							this.probabilityGrid[coords[j].x][coords[j].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
 						}
 					} else {
 						for (var _j = 0; _j < coords.length; _j++) {
@@ -800,7 +671,7 @@ AI.prototype.updateProbabilities = function() {
 					coords = roster[i].getAllShipCells();
 					if (this.passesThroughHitCell(coords)) {
 						for (var k = 0; k < coords.length; k++) {
-							this.probabilityGrid[coords[k].x][coords[k].y] += AI.PROB_WEIGHT * this.numberOfHitCellsCovered(coords);
+							this.probabilityGrid[coords[k].x][coords[k].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
 						}
 					} else {
 						for (var _k = 0; _k < coords.length; _k++) {
@@ -840,7 +711,7 @@ AI.prototype.passesThroughHitCell = function(shipCells) {
 };
 // Gives the number of hit cells the ships passes through. The more
 // cells this is, the more probable the ship exists in those coordinates
-AI.prototype.numberOfHitCellsCovered = function(shipCells) {
+AI.prototype.numHitCellsCovered = function(shipCells) {
 	var cells = 0;
 	for (var i = 0; i < shipCells.length; i++) {
 		if (this.virtualGrid.cells[shipCells[i].x][shipCells[i].y] === Grid.TYPE_HIT) {
@@ -848,50 +719,6 @@ AI.prototype.numberOfHitCellsCovered = function(shipCells) {
 		}
 	}
 	return cells;
-};
-AI.prototype.getLegalNeighbors = function() {
-	var candidateCells = [];
-
-	var north = {
-		'x': this.lastVisitedCell.x - 1,
-		'y': this.lastVisitedCell.y,
-		'directionName': 'north'
-	};
-	var east = {
-		'x': this.lastVisitedCell.x,
-		'y': this.lastVisitedCell.y + 1,
-		'directionName': 'east'
-	};
-	var south = {
-		'x': this.lastVisitedCell.x + 1,
-		'y': this.lastVisitedCell.y,
-		'directionName': 'south'
-	};
-	var west = {
-		'x': this.lastVisitedCell.x,
-		'y': this.lastVisitedCell.y - 1,
-		'directionName': 'west'
-	};
-
-	// Make sure the candidate cell is inside the grid, and unvisited
-	if (north.x >= 0 &&
-		this.virtualGrid.cells[north.x][north.y] === Grid.TYPE_EMPTY) {
-		candidateCells.push(north);
-	}
-	if (east.y < Game.size &&
-		this.virtualGrid.cells[east.x][east.y] === Grid.TYPE_EMPTY) {
-		candidateCells.push(east);
-	}
-	if (south.x < Game.size &&
-		this.virtualGrid.cells[south.x][south.y] === Grid.TYPE_EMPTY) {
-		candidateCells.push(south);
-	}
-	if (west.y >= 0 &&
-		this.virtualGrid.cells[west.x][west.y] === Grid.TYPE_EMPTY) {
-		candidateCells.push(west);
-	}
-
-	return candidateCells;
 };
 
 var mainGame = new Game(10);
