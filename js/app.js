@@ -29,6 +29,9 @@
 	// You are player 0 and the computer is player 1
 	Game.HUMAN_PLAYER = 0;
 	Game.COMPUTER_PLAYER = 1;
+	// Used for generating temporary ships for calculating
+	// the probability heatmap
+	Game.VIRTUAL_PLAYER = 2;
 
 	Game.prototype.incrementShots = function() {
 		this.shotsTaken++;
@@ -76,7 +79,7 @@
 			targetGrid.updateCell(x, y, 'hit', targetPlayer);
 			// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
 			// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
-			targetFleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
+			targetFleet.findShipByCoords(x, y).incrementDamage(); // increase the damage
 			this.incrementShots();
 			// this.updateRoster(targetFleet);
 			this.checkIfWon();
@@ -310,7 +313,6 @@
 			for (var i = 0; i < this.fleetRoster.length; i++) {
 				shipCoords = this.fleetRoster[i].getAllShipCells();
 				for (var j = 0; j < shipCoords.length; j++) {
-					console.log(this.playerGrid);
 					this.playerGrid.updateCell(shipCoords[j].x, shipCoords[j].y, 'ship', this.player);
 				}
 			}
@@ -333,7 +335,7 @@
 				var randomY = Math.floor(10*Math.random());
 				var randomDirection = Math.floor(2*Math.random());
 				if (this.fleetRoster[i].isLegal(randomX, randomY, randomDirection)) {
-					this.fleetRoster[i].create(randomX, randomY, randomDirection);
+					this.fleetRoster[i].create(randomX, randomY, randomDirection, false);
 					illegalPlacement = false;
 				} else {
 					continue;
@@ -349,10 +351,10 @@
 	 * @param y
 	 * @returns {*}
 	 */
-	Fleet.prototype.findShipByLocation = function(x, y) {
+	Fleet.prototype.findShipByCoords = function(x, y) {
 		for (var i = 0; i < this.fleetRoster.length; i++) {
 			var currentShip = this.fleetRoster[i];
-			if (currentShip.direction === 0) {
+			if (currentShip.direction === Ship.DIRECTION_VERTICAL) {
 				if (y === currentShip.yPosition &&
 					x >= currentShip.xPosition &&
 					x <= currentShip.xPosition + currentShip.shipLength) {
@@ -435,7 +437,7 @@
 		if (this.withinBounds(x, y, direction)) {
 			// ...then check to make sure it doesn't collide with another ship
 			for (var i = 0; i < this.shipLength; i++) {
-				if (direction === 0) {
+				if (direction === Ship.DIRECTION_VERTICAL) {
 					if (this.playerGrid.cells[x + i][y] === Grid.TYPE_SHIP) {
 						return false;
 					}
@@ -458,7 +460,7 @@
 	 * @returns {boolean}
 	 */
 	Ship.prototype.withinBounds = function(x, y, direction) {
-		if (direction === 0) {
+		if (direction === Ship.DIRECTION_VERTICAL) {
 			return x + this.shipLength <= Game.size;
 		} else {
 			return y + this.shipLength <= Game.size;
@@ -510,7 +512,7 @@
 	Ship.prototype.getAllShipCells = function() {
 		var resultObject = [];
 		for (var i = 0; i < this.shipLength; i++) {
-			if (this.direction === 0) {
+			if (this.direction === Ship.DIRECTION_VERTICAL) {
 				resultObject[i] = {'x': this.xPosition + i, 'y': this.yPosition};
 			} else {
 				resultObject[i] = {'x': this.xPosition, 'y': this.yPosition + i};
@@ -524,22 +526,30 @@
 	 * @param x
 	 * @param y
 	 * @param direction
+	 * @param virtual
 	 */
-	Ship.prototype.create = function(x, y, direction) {
+	Ship.prototype.create = function(x, y, direction, virtual) {
 		// This function assumes that you've already checked that the placement is legal
 		this.xPosition = x;
 		this.yPosition = y;
 		this.direction = direction;
-		// direction === 0 when the ship is facing north/south
-		// direction === 1 when the ship is facing east/west
-		for (var i = 0; i < this.shipLength; i++) {
-			if (this.direction === 0) {
-				this.playerGrid.cells[x + i][y] = Grid.TYPE_SHIP;
-			} else {
-				this.playerGrid.cells[x][y + i] = Grid.TYPE_SHIP;
+
+		// If the ship is virtual, don't add it to the grid.
+		if (!virtual) {
+			for (var i = 0; i < this.shipLength; i++) {
+				if (this.direction === Ship.DIRECTION_VERTICAL) {
+					this.playerGrid.cells[x + i][y] = Grid.TYPE_SHIP;
+				} else {
+					this.playerGrid.cells[x][y + i] = Grid.TYPE_SHIP;
+				}
 			}
 		}
+		
 	};
+	// direction === 0 when the ship is facing north/south
+	// direction === 1 when the ship is facing east/west
+	Ship.DIRECTION_VERTICAL = 0;
+	Ship.DIRECTION_HORIZONTAL = 1;
 
 	// Optimal battleship-playing AI
 	function AI(gameObject) {
@@ -548,6 +558,7 @@
 		this.visibleGrid = [];
 		this.probabilityGrid = [];
 		this.initializeGrid();
+		this.updateProbabilities();
 
 		this.unvisitedCells = [];
 		for (var i = 0; i < Game.size; i++ ) {
@@ -562,10 +573,12 @@
 	AI.prototype.initializeGrid = function() {
 		for (var x = 0; x < Game.size; x++) {
 			var row = [];
+			var _row = [];
 			this.visibleGrid[x] = row;
-			this.probabilityGrid[x] = row;
+			this.probabilityGrid[x] = _row;
 			for (var y = 0; y < Game.size; y++) {
 				row.push(Grid.TYPE_EMPTY);
+				_row.push(0);
 			}
 		}
 	};
@@ -694,12 +707,41 @@
 
 	};
 	AI.prototype.isShipSunk = function(x, y) {
-		return this.gameObject.humanFleet.findShipByLocation(x, y).isSunk();
+		return this.gameObject.humanFleet.findShipByCoords(x, y).isSunk();
 	};
+
+	// WARNING: This function can take up a lot of memory and/or CPU
 	AI.prototype.updateProbabilities = function() {
-		for (var i = 0; i < this.gameObject.humanFleet.length; i++) {
-			// this.gameObject.humanFleet[i] = 1;
+		var roster = new Fleet(new Grid(Game.size), Game.VIRTUAL_PLAYER).fleetRoster;
+		// Probabilities are not normalized to fit in the interval [0, 1]
+		// because we're going to be dividing things out anyway
+
+		var coords;
+		// Try fitting each ship in each cell in every orientation
+		// TODO: Think about a more efficient way of doing this
+		for (var i = 0; i < roster.length; i++) {
+			for (var x = 0; x < Game.size; x++) {
+				for (var y = 0; y < Game.size; y++) {
+					if (roster[i].isLegal(x, y, Ship.DIRECTION_VERTICAL)) {
+						roster[i].create(x, y, Ship.DIRECTION_VERTICAL, true);
+						coords = roster[i].getAllShipCells();
+						for (var j = 0; j < coords.length; j++) {
+							this.probabilityGrid[coords[j].x][coords[j].y]++;
+						}
+					}
+					if (roster[i].isLegal(x, y, Ship.DIRECTION_HORIZONTAL)) {
+						roster[i].create(x, y, Ship.DIRECTION_HORIZONTAL, true);
+						coords = roster[i].getAllShipCells();
+						for (var k = 0; k < coords.length; k++) {
+							this.probabilityGrid[coords[k].x][coords[k].y]++;
+						}
+					}
+				}
+			}
 		}
+
+		console.log(this.probabilityGrid);
+
 	};
 	AI.prototype.getLegalNeighbors = function() {
 		var candidateCells = [];
