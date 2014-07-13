@@ -122,16 +122,15 @@ div {
 	.grid-ship, .human-player .grid-ship:hover {
 		background-color: #808080;
 	}
-	.grid-miss, .grid-miss:hover {
-		/*background-color: #EEEEEE;*/
+	.grid-miss, .grid-miss:hover, .human-player .grid-miss:hover {
 		background-color: #E1EDF6;
 	}
-	.grid-hit, .grid-hit:hover {
+	.grid-hit, .grid-hit:hover, .human-player .grid-hit:hover {
 		background-color: #F60018;
 		background-image: url('../img/cross-icon.png');
 		background-position: center;
 		background-repeat: no-repeat;
 	}
-	.grid-sunk, .grid-sunk:hover {
+	.grid-sunk, .grid-sunk:hover, .human-player .grid-sunk:hover {
 		background-color: #222222;
 	}
