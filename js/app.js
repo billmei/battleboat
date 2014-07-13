@@ -25,10 +25,10 @@
 	}
 	Game.size = 10; // Default grid size is 10x10
 	// Initialize first turn to the player
-	Game.currentTurn = Game.PLAYER_0;
+	Game.currentTurn = Game.HUMAN_PLAYER;
 	// You are player 0 and the computer is player 1
-	Game.PLAYER_0 = 0;
-	Game.PLAYER_1 = 1;
+	Game.HUMAN_PLAYER = 0;
+	Game.COMPUTER_PLAYER = 1;
 
 	Game.prototype.incrementShots = function() {
 		this.shotsTaken++;
@@ -41,11 +41,11 @@
 		});
 	};
 	Game.prototype.checkIfWon = function() {
-		if (this.player1fleet.allShipsSunk()) {
+		if (this.computerFleet.allShipsSunk()) {
 			alert('Congratulations, you win!');
 			this.resetFogOfWar();
 			this.initialize();
-		} else if (this.player0fleet.allShipsSunk()) {
+		} else if (this.humanFleet.allShipsSunk()) {
 			alert('Yarr! The computer sank all your ships. Try again.');
 			this.resetFogOfWar();
 			this.initialize();
@@ -56,12 +56,12 @@
 	Game.prototype.shoot = function(x, y, targetPlayer) {
 		var targetGrid;
 		var targetFleet;
-		if (targetPlayer === Game.PLAYER_0) {
-			targetGrid = this.player0grid;
-			targetFleet = this.player0fleet;
-		} else if (targetPlayer === Game.PLAYER_1) {
-			targetGrid = this.player1grid;
-			targetFleet = this.player1fleet;
+		if (targetPlayer === Game.HUMAN_PLAYER) {
+			targetGrid = this.humanGrid;
+			targetFleet = this.humanFleet;
+		} else if (targetPlayer === Game.COMPUTER_PLAYER) {
+			targetGrid = this.computerGrid;
+			targetFleet = this.computerFleet;
 		} else {
 			// Should never be called
 			console.log("There was an error trying to find the correct player to target");
@@ -98,12 +98,12 @@
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 		// console.log(mainGame);
-		// if (Game.currentTurn === Game.PLAYER_0) {
+		// if (Game.currentTurn === Game.HUMAN_PLAYER) {
 			// I couldn't figure out how to avoid referencing the global variable here
-			mainGame.shoot(x, y, Game.PLAYER_1);
-			// Game.currentTurn = Game.PLAYER_1;
+			mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
+			// Game.currentTurn = Game.COMPUTER_PLAYER;
 			mainGame.robot.shoot();
-			// Game.currentTurn = Game.PLAYER_0;
+			// Game.currentTurn = Game.HUMAN_PLAYER;
 		// } else {
 			
 		// }
@@ -114,8 +114,8 @@
 	Game.prototype.resetFogOfWar = function() {
 		for (var i = 0; i < Game.size; i++) {
 			for (var j = 0; j < Game.size; j++) {
-				this.player0grid.updateCell(i, j, 'empty', Game.PLAYER_0);
-				this.player1grid.updateCell(i, j, 'empty', Game.PLAYER_1);
+				this.humanGrid.updateCell(i, j, 'empty', Game.HUMAN_PLAYER);
+				this.computerGrid.updateCell(i, j, 'empty', Game.COMPUTER_PLAYER);
 			}
 		}
 	};
@@ -143,10 +143,10 @@
 	 * Initializes the game
 	 */
 	Game.prototype.initialize = function() {
-		this.player0grid = new Grid(Game.size);
-		this.player1grid = new Grid(Game.size);
-		this.player0fleet = new Fleet(this.player0grid, Game.PLAYER_0);
-		this.player1fleet = new Fleet(this.player1grid, Game.PLAYER_1);
+		this.humanGrid = new Grid(Game.size);
+		this.computerGrid = new Grid(Game.size);
+		this.humanFleet = new Fleet(this.humanGrid, Game.HUMAN_PLAYER);
+		this.computerFleet = new Fleet(this.computerGrid, Game.COMPUTER_PLAYER);
 
 		this.robot = new AI(this);
 
@@ -161,12 +161,12 @@
 
 		// Add a click listener for the Grid.shoot() method for all cells
 		// Only add this listener to the computer's grid
-		var gridCells = document.querySelector('.player-1-grid').childNodes;
+		var gridCells = document.querySelector('.computer-player').childNodes;
 		for (var j = 0; j < gridCells.length; j++) {
 			gridCells[j].addEventListener('click', this.clickListener, false);
 		}
-		this.player0fleet.placeShips();
-		this.player1fleet.placeShips();
+		this.humanFleet.placeShips();
+		this.computerFleet.placeShips();
 	};
 
 	/**
@@ -215,10 +215,10 @@
 	 */
 	Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 		var player;
-		if (targetPlayer === Game.PLAYER_0) {
-			player = 'player-0-grid';
-		} else if (targetPlayer === Game.PLAYER_1) {
-			player = 'player-1-grid';
+		if (targetPlayer === Game.HUMAN_PLAYER) {
+			player = 'human-player';
+		} else if (targetPlayer === Game.COMPUTER_PLAYER) {
+			player = 'computer-player';
 		} else {
 			// Should never be called
 			console.log("There was an error trying to find the correct player's grid");
@@ -305,7 +305,7 @@
 	};
 	Fleet.prototype.placeShips = function() {
 		var shipCoords;
-		if (this.player === Game.PLAYER_0) {
+		if (this.player === Game.HUMAN_PLAYER) {
 			this.placeShipsRandomly();
 			for (var i = 0; i < this.fleetRoster.length; i++) {
 				shipCoords = this.fleetRoster[i].getAllShipCells();
@@ -315,7 +315,7 @@
 				}
 			}
 
-		} else if (this.player === Game.PLAYER_1) {
+		} else if (this.player === Game.COMPUTER_PLAYER) {
 			// TODO: Avoid placing ships too close to each other
 			this.placeShipsRandomly();
 		}
@@ -546,6 +546,7 @@
 		this.gameObject = gameObject;
 		this.currentStrategy = 'scout';
 		this.visibleGrid = [];
+		this.probabilityGrid = [];
 		this.initializeGrid();
 
 		this.unvisitedCells = [];
@@ -562,6 +563,7 @@
 		for (var x = 0; x < Game.size; x++) {
 			var row = [];
 			this.visibleGrid[x] = row;
+			this.probabilityGrid[x] = row;
 			for (var y = 0; y < Game.size; y++) {
 				row.push(Grid.TYPE_EMPTY);
 			}
@@ -580,7 +582,7 @@
 		var randomX = this.unvisitedCells[randomCoords].x;
 		var randomY = this.unvisitedCells[randomCoords].y;
 
-		var result = this.gameObject.shoot(randomX, randomY, Game.PLAYER_0);
+		var result = this.gameObject.shoot(randomX, randomY, Game.HUMAN_PLAYER);
 		if (result === Grid.TYPE_SHIP) {
 			this.currentStrategy = 'chase';
 		} else if (result === Grid.TYPE_MISS) {
@@ -658,7 +660,7 @@
 		result = this.gameObject.shoot(
 			candidateCells[chosenDirection].x,
 			candidateCells[chosenDirection].y,
-			Game.PLAYER_0
+			Game.HUMAN_PLAYER
 			);
 
 
@@ -676,7 +678,7 @@
 
 		// If you hit a ship, keep chasing in the same direction
 		if (result === Grid.TYPE_SHIP) {
-			if (this.isCurrentShipSunk(this.lastVisitedCell.x, this.lastVisitedCell.y)) {
+			if (this.isShipSunk(this.lastVisitedCell.x, this.lastVisitedCell.y)) {
 				// Reset your temporary variables before going back to scout strategy
 				this.chaseDirection = null;
 				this.firstHitCell = null;
@@ -691,8 +693,13 @@
 		}
 
 	};
-	AI.prototype.isCurrentShipSunk = function(x, y) {
-		return this.gameObject.player0fleet.findShipByLocation(x, y).isSunk();
+	AI.prototype.isShipSunk = function(x, y) {
+		return this.gameObject.humanFleet.findShipByLocation(x, y).isSunk();
+	};
+	AI.prototype.updateProbabilities = function() {
+		for (var i = 0; i < this.gameObject.humanFleet.length; i++) {
+			// this.gameObject.humanFleet[i] = 1;
+		}
 	};
 	AI.prototype.getLegalNeighbors = function() {
 		var candidateCells = [];
