@@ -3,8 +3,13 @@
 // Bill Mei, 2014
 // MIT License
 
+// Thanks to Nick Berry for the inspiration behind the AI
+// http://www.datagenetics.com/blog/december32011/
+
 // TODO: Google Analytics to track win/loss rates against real human players
 // TODO: Use analytics to track average number of shots taken
+// TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0)
+// TODO: Log and display the user's win percentage. Store via localstorage
 
 var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
@@ -791,3 +796,5 @@ if (!Array.prototype.indexOf) {
     return -1;
   };
 }
+
+// console.log("Hi! Thanks for checking out this game. Please be nice and don't hack the ajax requests, I'm using Google Analytics to collect info about the AI's win/loss percentage in order to improve the bot, so if you do look around, I kindly ask that you don't give it bad data. Thanks.");
