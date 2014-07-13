@@ -20,6 +20,11 @@ div {
 	padding: 0;
 	margin: 0;
 }
+
+.tagline {
+	margin-bottom: 3em;
+}
+
 .container {
 	position: relative;
 	width: 880px;
@@ -43,6 +48,11 @@ div {
 			margin: 0 0 1em 0;
 			text-align: center;
 		}
+	.container ol {
+		display: inline-block;
+		text-align: left;
+		margin-top: 0;
+	}
 
 .fleet-roster {
 	margin: 0;
@@ -56,6 +66,12 @@ div {
 		text-decoration: line-through;
 	}
 
+
+.grid-container h2 {
+	width: 420px;
+	display: inline-block;
+}
+
 .grid {
 	vertical-align: top;
 	display: inline-block;
@@ -67,8 +83,8 @@ div {
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 }
-	.grid:first-child {
-		margin-right: 20px;
+	.grid:last-child {
+		margin-left: 20px;
 	}
 	.no-js {
 		width: 300px;
@@ -92,6 +108,9 @@ div {
 		.grid-cell:hover {
 			cursor: pointer;
 			background-color: #7EB3DA;
+		}
+		.player-1-grid .grid-cell:hover {
+			cursor: url('../img/crosshair.png') 16 16, crosshair;
 		}
 	.grid-ship {
 		background-color: #C0C0C0;
