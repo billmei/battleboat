@@ -5,8 +5,6 @@
 
 // TODO: Google Analytics to track win/loss rates against real human players
 // TODO: Use analytics to track average number of shots taken
-// TODO: If the player clicks on a cell they've already uncovered, the AI
-// should not immediately shoot because it's still the player's turn
 
 var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
@@ -24,11 +22,10 @@ function Game(size) {
 	this.initialize();
 }
 Game.size = 10; // Default grid size is 10x10
-// Initialize first turn to the player
-Game.currentTurn = Game.HUMAN_PLAYER;
 // You are player 0 and the computer is player 1
 Game.HUMAN_PLAYER = 0;
 Game.COMPUTER_PLAYER = 1;
+Game.gameOver = false;
 // Used for generating temporary ships for calculating
 // the probability heatmap
 Game.VIRTUAL_PLAYER = 2;
@@ -46,10 +43,12 @@ Game.prototype.updateRoster = function(targetFleet) {
 Game.prototype.checkIfWon = function() {
 	if (this.computerFleet.allShipsSunk()) {
 		alert('Congratulations, you win!');
+		Game.gameOver = true;
 		this.resetFogOfWar();
 		this.initialize();
 	} else if (this.humanFleet.allShipsSunk()) {
 		alert('Yarr! The computer sank all your ships. Try again.');
+		Game.gameOver = true;
 		this.resetFogOfWar();
 		this.initialize();
 	}
@@ -100,16 +99,16 @@ Game.prototype.clickListener = function(e) {
 	// extract coordinates from event listener
 	var x = parseInt(e.target.getAttribute('data-x'), 10);
 	var y = parseInt(e.target.getAttribute('data-y'), 10);
-	// console.log(mainGame);
-	// if (Game.currentTurn === Game.HUMAN_PLAYER) {
-		// I couldn't figure out how to avoid referencing the global variable here
-		mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
-		// Game.currentTurn = Game.COMPUTER_PLAYER;
+	// I couldn't figure out how to avoid referencing the global variable here
+	var result = mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
+
+	if (result !== null && !Game.gameOver) {
+		// The AI shoots iff the player clicks on a cell that he/she hasn't
+		// already clicked on
 		mainGame.robot.shoot();
-		// Game.currentTurn = Game.HUMAN_PLAYER;
-	// } else {
-		
-	// }
+	} else {
+		Game.gameOver = false;
+	}
 };
 /**
  * Resets the fog of war
@@ -611,6 +610,12 @@ AI.prototype.shoot = function() {
 
 	var result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, Game.HUMAN_PLAYER);
 	
+	// If the game ends, the next lines need to be skipped.
+	if (Game.gameOver) {
+		Game.gameOver = false;
+		return;
+	}
+
 	this.virtualGrid.cells[maxProbCoords.x][maxProbCoords.y] = result;
 
 	// If you hit a ship, check to make sure if you've sunk it.
@@ -688,8 +693,6 @@ AI.prototype.updateProbabilities = function() {
 			}
 		}
 	}
-	console.log(this.virtualGrid);
-	console.log(this.probabilityGrid);
 	
 };
 AI.prototype.resetProbabilities = function() {
