@@ -3,11 +3,6 @@
 	// Bill Mei, 2014
 	// MIT License
 	
-	// Currently the computer just places ships at random and you
-	// have to guess where they are but eventually I want to
-	// implement an AI based on the DataGenetics algorithm:
-	// http://www.datagenetics.com/blog/december32011/
-
 	// TODO: Google Analytics to track win/loss rates against real human players
 
 	var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
@@ -80,7 +75,7 @@
 			// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
 			targetFleet.findShipByLocation(x, y).incrementDamage(); // increase the damage
 			this.incrementShots();
-			this.updateRoster(targetFleet);
+			// this.updateRoster(targetFleet);
 			this.checkIfWon();
 			return Grid.TYPE_SHIP;
 		} else {
@@ -104,7 +99,7 @@
 			// I couldn't figure out how to avoid referencing the global variable here
 			mainGame.shoot(x, y, Game.PLAYER_1);
 			// Game.currentTurn = Game.PLAYER_1;
-			robot.shoot();
+			mainGame.robot.shoot();
 			// Game.currentTurn = Game.PLAYER_0;
 		// } else {
 			
@@ -149,6 +144,8 @@
 		this.player1grid = new Grid(Game.size);
 		this.player0fleet = new Fleet(this.player0grid, Game.PLAYER_0);
 		this.player1fleet = new Fleet(this.player1grid, Game.PLAYER_1);
+
+		this.robot = new AI(this);
 
 		// Reset game variables
 		this.shotsTaken = 0;
@@ -527,7 +524,7 @@
 	// Optimal battleship-playing AI
 	function AI(gameObject) {
 		this.gameObject = gameObject;
-		this.currentStrategy = 'spread';
+		this.currentStrategy = 'scout';
 		this.visibleGrid = [];
 		this.initializeGrid();
 
@@ -550,7 +547,7 @@
 			}
 		}
 	};
-	AI.prototype.spread = function() {
+	AI.prototype.scout = function() {
 		// shoots randomly only in parity grid order for now
 		var randomCoords = Math.floor(this.unvisitedCells.length * Math.random());
 		var randomX = this.unvisitedCells[randomCoords].x;
@@ -560,7 +557,7 @@
 		if (result === Grid.TYPE_SHIP) {
 			this.currentStrategy = 'chase';
 		} else if (result === Grid.TYPE_MISS) {
-			this.currentStrategy = 'spread';
+			this.currentStrategy = 'scout';
 		}
 		this.lastVisitedCell = this.unvisitedCells[randomCoords];
 		this.lastVisitedCell.directionName = 'none';
@@ -654,10 +651,10 @@
 		// If you hit a ship, keep chasing in the same direction
 		if (result === Grid.TYPE_SHIP) {
 			if (this.isCurrentShipSunk(this.lastVisitedCell.x, this.lastVisitedCell.y)) {
-				// Reset your temporary variables before going back to spread strategy
+				// Reset your temporary variables before going back to scout strategy
 				this.chaseDirection = null;
 				this.firstHitCell = null;
-				this.currentStrategy = 'spread';
+				this.currentStrategy = 'scout';
 			} else {
 				this.chaseDirection = candidateCells[chosenDirection].directionName;
 			}
@@ -669,8 +666,8 @@
 
 	};
 	AI.prototype.shoot = function() {
-		if (this.currentStrategy === 'spread') {
-			this.spread();
+		if (this.currentStrategy === 'scout') {
+			this.scout();
 		} else if (this.currentStrategy === 'chase') {
 			this.chase();
 		}
@@ -724,5 +721,4 @@
 	};
 
 	var mainGame = new Game(10);
-	var robot = new AI(mainGame);
 })();
