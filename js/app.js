@@ -438,11 +438,13 @@
 			// ...then check to make sure it doesn't collide with another ship
 			for (var i = 0; i < this.shipLength; i++) {
 				if (direction === Ship.DIRECTION_VERTICAL) {
-					if (this.playerGrid.cells[x + i][y] === Grid.TYPE_SHIP) {
+					if (this.playerGrid.cells[x + i][y] === Grid.TYPE_SHIP ||
+						this.playerGrid.cells[x + i][y] === Grid.TYPE_MISS) {
 						return false;
 					}
 				} else {
-					if (this.playerGrid.cells[x][y + i] === Grid.TYPE_SHIP) {
+					if (this.playerGrid.cells[x][y + i] === Grid.TYPE_SHIP ||
+						this.playerGrid.cells[x][y + i] === Grid.TYPE_MISS) {
 						return false;
 					}
 				}
@@ -555,9 +557,10 @@
 	function AI(gameObject) {
 		this.gameObject = gameObject;
 		this.currentStrategy = 'scout';
-		this.visibleGrid = [];
+		this.virtualGrid = new Grid(Game.size);
+
 		this.probabilityGrid = [];
-		this.initializeGrid();
+		this.initializeProbabilities();
 		this.updateProbabilities();
 
 		this.unvisitedCells = [];
@@ -570,15 +573,12 @@
 			}
 		}
 	}
-	AI.prototype.initializeGrid = function() {
+	AI.prototype.initializeProbabilities = function() {
 		for (var x = 0; x < Game.size; x++) {
 			var row = [];
-			var _row = [];
-			this.visibleGrid[x] = row;
-			this.probabilityGrid[x] = _row;
+			this.probabilityGrid[x] = row;
 			for (var y = 0; y < Game.size; y++) {
-				row.push(Grid.TYPE_EMPTY);
-				_row.push(0);
+				row.push(0);
 			}
 		}
 	};
@@ -588,8 +588,18 @@
 		} else if (this.currentStrategy === 'chase') {
 			this.chase();
 		}
+		this.updateProbabilities();
 	};
 	AI.prototype.scout = function() {
+		// Pick up here: Find the maximum in the probability array and target that cell
+
+		// for (var x = 0; x < Game.size; x++) {
+		// 	for (var y = 0; y < Game.size; y++) {
+		// 		// do stuff
+		// 	}
+		// }
+
+
 		// shoots randomly only in parity grid order for now
 		var randomCoords = Math.floor(this.unvisitedCells.length * Math.random());
 		var randomX = this.unvisitedCells[randomCoords].x;
@@ -609,7 +619,7 @@
 			// If the result doesn't exist it means we haven't visited the cell
 			result = Grid.TYPE_EMPTY;
 		}
-		this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
+		this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
 		this.unvisitedCells.splice(randomCoords, 1);
 	};
@@ -687,7 +697,7 @@
 		if (result === null || result === undefined) {
 			result = Grid.TYPE_EMPTY;
 		}
-		this.visibleGrid[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
+		this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
 		// If you hit a ship, keep chasing in the same direction
 		if (result === Grid.TYPE_SHIP) {
@@ -710,13 +720,12 @@
 		return this.gameObject.humanFleet.findShipByCoords(x, y).isSunk();
 	};
 
-	// WARNING: This function can take up a lot of memory and/or CPU
 	AI.prototype.updateProbabilities = function() {
-		var roster = new Fleet(new Grid(Game.size), Game.VIRTUAL_PLAYER).fleetRoster;
+		var roster = new Fleet(this.virtualGrid, Game.VIRTUAL_PLAYER).fleetRoster;
+		var coords;
 		// Probabilities are not normalized to fit in the interval [0, 1]
 		// because we're going to be dividing things out anyway
-
-		var coords;
+		this.resetProbabilities();
 		// Try fitting each ship in each cell in every orientation
 		// TODO: Think about a more efficient way of doing this
 		for (var i = 0; i < roster.length; i++) {
@@ -742,6 +751,13 @@
 
 		console.log(this.probabilityGrid);
 
+	};
+	AI.prototype.resetProbabilities = function() {
+		for (var x = 0; x < Game.size; x++) {
+			for (var y = 0; y < Game.size; y++) {
+				this.probabilityGrid[x][y] = 0;
+			}
+		}
 	};
 	AI.prototype.getLegalNeighbors = function() {
 		var candidateCells = [];
@@ -769,19 +785,19 @@
 
 		// Make sure the candidate cell is inside the grid, and unvisited
 		if (north.x >= 0 &&
-			this.visibleGrid[north.x][north.y] === Grid.TYPE_EMPTY) {
+			this.virtualGrid.cells[north.x][north.y] === Grid.TYPE_EMPTY) {
 			candidateCells.push(north);
 		}
 		if (east.y < Game.size &&
-			this.visibleGrid[east.x][east.y] === Grid.TYPE_EMPTY) {
+			this.virtualGrid.cells[east.x][east.y] === Grid.TYPE_EMPTY) {
 			candidateCells.push(east);
 		}
 		if (south.x < Game.size &&
-			this.visibleGrid[south.x][south.y] === Grid.TYPE_EMPTY) {
+			this.virtualGrid.cells[south.x][south.y] === Grid.TYPE_EMPTY) {
 			candidateCells.push(south);
 		}
 		if (west.y >= 0 &&
-			this.visibleGrid[west.x][west.y] === Grid.TYPE_EMPTY) {
+			this.virtualGrid.cells[west.x][west.y] === Grid.TYPE_EMPTY) {
 			candidateCells.push(west);
 		}
 
