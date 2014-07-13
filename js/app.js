@@ -83,7 +83,7 @@
 			this.incrementShots();
 			// this.updateRoster(targetFleet);
 			this.checkIfWon();
-			return Grid.TYPE_SHIP;
+			return Grid.TYPE_HIT;
 		} else {
 			targetGrid.updateCell(x, y, 'miss', targetPlayer);
 			this.incrementShots();
@@ -375,6 +375,21 @@
 		return null;
 	};
 	/**
+	 * Finds a ship by type
+	 * Returns the ship object that is of type 'type'
+	 * If no ship exists, this returns null.
+	 * @param type
+	 * @returns {*}
+	 */
+	Fleet.prototype.findShipByType = function(shipType) {
+		for (var i = 0; i < this.fleetRoster.length; i++) {
+			if (this.fleetRoster[i].type === shipType) {
+				return this.fleetRoster[i];
+			}
+		}
+		return null;
+	};
+	/**
 	 * Checks to see if all ships have been sunk
 	 *
 	 * @returns {boolean}
@@ -401,6 +416,7 @@
 		this.type = type;
 		this.playerGrid = playerGrid;
 		this.player = player;
+
 		switch (this.type) {
 			case AVAILABLE_SHIPS[0]:
 				this.shipLength = 5;
@@ -439,12 +455,14 @@
 			for (var i = 0; i < this.shipLength; i++) {
 				if (direction === Ship.DIRECTION_VERTICAL) {
 					if (this.playerGrid.cells[x + i][y] === Grid.TYPE_SHIP ||
-						this.playerGrid.cells[x + i][y] === Grid.TYPE_MISS) {
+						this.playerGrid.cells[x + i][y] === Grid.TYPE_MISS ||
+						this.playerGrid.cells[x + i][y] === Grid.TYPE_SUNK) {
 						return false;
 					}
 				} else {
 					if (this.playerGrid.cells[x][y + i] === Grid.TYPE_SHIP ||
-						this.playerGrid.cells[x][y + i] === Grid.TYPE_MISS) {
+						this.playerGrid.cells[x][y + i] === Grid.TYPE_MISS ||
+						this.playerGrid.cells[x][y + i] === Grid.TYPE_SUNK) {
 						return false;
 					}
 				}
@@ -476,7 +494,7 @@
 	Ship.prototype.incrementDamage = function() {
 		this.damage++;
 		if (this.isSunk()) {
-			this.sinkShip(); // Sinks the ship
+			this.sinkShip(false); // Sinks the ship
 		}
 		return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 	};
@@ -492,12 +510,16 @@
 	 * Sinks the ship
 	 *
 	 */
-	Ship.prototype.sinkShip = function() {
+	Ship.prototype.sinkShip = function(virtual) {
+		this.damage = this.maxDamage; // Force the damage to exceed max damage
 		this.sunk = true;
-		// Make the CSS class sunk
-		var allCells = this.getAllShipCells();
-		for (var i = 0; i < this.shipLength; i++) {
-			this.playerGrid.updateCell(allCells[i].x, allCells[i].y, 'sunk', this.player);
+
+		// Make the CSS class sunk, but only if the ship is not virtual
+		if (!virtual) {
+			var allCells = this.getAllShipCells();
+			for (var i = 0; i < this.shipLength; i++) {
+				this.playerGrid.updateCell(allCells[i].x, allCells[i].y, 'sunk', this.player);
+			}
 		}
 	};
 	/**
@@ -558,6 +580,7 @@
 		this.gameObject = gameObject;
 		this.currentStrategy = 'scout';
 		this.virtualGrid = new Grid(Game.size);
+		this.virtualFleet = new Fleet(this.virtualGrid, Game.VIRTUAL_PLAYER);
 
 		this.probabilityGrid = [];
 		this.initializeProbabilities();
@@ -599,14 +622,13 @@
 		// 	}
 		// }
 
-
 		// shoots randomly only in parity grid order for now
 		var randomCoords = Math.floor(this.unvisitedCells.length * Math.random());
 		var randomX = this.unvisitedCells[randomCoords].x;
 		var randomY = this.unvisitedCells[randomCoords].y;
 
 		var result = this.gameObject.shoot(randomX, randomY, Game.HUMAN_PLAYER);
-		if (result === Grid.TYPE_SHIP) {
+		if (result === Grid.TYPE_HIT) {
 			this.currentStrategy = 'chase';
 		} else if (result === Grid.TYPE_MISS) {
 			this.currentStrategy = 'scout';
@@ -616,7 +638,11 @@
 
 		// Update the AI's visible grid with the result
 		if (result === null || result === undefined) {
-			// If the result doesn't exist it means we haven't visited the cell
+			// If the result doesn't exist it means we've visited the
+			// cell previously while the algorithm was in chase mode.
+			// TODO: Since this should really never happen, make sure
+			// the chase strategy removes any visited cells from
+			// this.unvisitedCells
 			result = Grid.TYPE_EMPTY;
 		}
 		this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
@@ -686,7 +712,6 @@
 			Game.HUMAN_PLAYER
 			);
 
-
 		// TODO: If there are any visible hit cells on the grid at any time we
 		// have to go back and try to sink that ship
 
@@ -694,14 +719,16 @@
 		this.lastVisitedCell = candidateCells[chosenDirection];
 		
 		// Update the AI's visible grid with the result
-		if (result === null || result === undefined) {
-			result = Grid.TYPE_EMPTY;
-		}
 		this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
 		// If you hit a ship, keep chasing in the same direction
-		if (result === Grid.TYPE_SHIP) {
+		if (result === Grid.TYPE_HIT) {
 			if (this.isShipSunk(this.lastVisitedCell.x, this.lastVisitedCell.y)) {
+				// remove the ship from the virtual fleet
+				this.virtualFleet.fleetRoster.findShipByType(
+					this.getShipType(this.lastVisitedCell.x, this.lastVisitedCell.y)
+				);
+				
 				// Reset your temporary variables before going back to scout strategy
 				this.chaseDirection = null;
 				this.firstHitCell = null;
@@ -719,13 +746,23 @@
 	AI.prototype.isShipSunk = function(x, y) {
 		return this.gameObject.humanFleet.findShipByCoords(x, y).isSunk();
 	};
+	AI.prototype.getShipType = function(x, y) {
+		return this.gameObject.humanFleet.findShipByCoords(x, y).type;
+	};
 
 	AI.prototype.updateProbabilities = function() {
-		var roster = new Fleet(this.virtualGrid, Game.VIRTUAL_PLAYER).fleetRoster;
+		var roster = this.virtualFleet.fleetRoster;
 		var coords;
+		this.resetProbabilities();
+		// Remove any ships from the roster that have been sunk
+		for (var ship = 0; ship < roster.length; ship++) {
+			if (roster[ship].isSunk()) {
+				roster.splice(ship, 1);
+			}
+		}
+
 		// Probabilities are not normalized to fit in the interval [0, 1]
 		// because we're going to be dividing things out anyway
-		this.resetProbabilities();
 		// Try fitting each ship in each cell in every orientation
 		// TODO: Think about a more efficient way of doing this
 		for (var i = 0; i < roster.length; i++) {
@@ -748,9 +785,11 @@
 				}
 			}
 		}
-
+		// TODO: Force ships to fit into cells where we have a known hit
+		console.log('==================');
+		console.log(roster);
+		console.log(this.virtualGrid);
 		console.log(this.probabilityGrid);
-
 	};
 	AI.prototype.resetProbabilities = function() {
 		for (var x = 0; x < Game.size; x++) {
