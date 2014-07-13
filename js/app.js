@@ -357,7 +357,7 @@
 			if (currentShip.direction === Ship.DIRECTION_VERTICAL) {
 				if (y === currentShip.yPosition &&
 					x >= currentShip.xPosition &&
-					x <= currentShip.xPosition + currentShip.shipLength) {
+					x < currentShip.xPosition + currentShip.shipLength) {
 					return currentShip;
 				} else {
 					continue;
@@ -365,7 +365,7 @@
 			} else {
 				if (x === currentShip.xPosition &&
 					y >= currentShip.yPosition &&
-					y <= currentShip.yPosition + currentShip.shipLength) {
+					y < currentShip.yPosition + currentShip.shipLength) {
 					return currentShip;
 				} else {
 					continue;
@@ -643,7 +643,8 @@
 			// TODO: Since this should really never happen, make sure
 			// the chase strategy removes any visited cells from
 			// this.unvisitedCells
-			result = Grid.TYPE_EMPTY;
+			result = Grid.TYPE_MISS;
+			result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, Game.HUMAN_PLAYER);
 		}
 		this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
@@ -772,25 +773,40 @@
 					if (roster[i].isLegal(x, y, Ship.DIRECTION_VERTICAL)) {
 						roster[i].create(x, y, Ship.DIRECTION_VERTICAL, true);
 						coords = roster[i].getAllShipCells();
-						for (var j = 0; j < coords.length; j++) {
-							this.probabilityGrid[coords[j].x][coords[j].y]++;
+						if (this.passesThroughHitCell(coords)) {
+							for (var j = 0; j < coords.length; j++) {
+								this.probabilityGrid[coords[j].x][coords[j].y] += 50;
+							}
+						} else {
+							for (var _j = 0; _j < coords.length; _j++) {
+								this.probabilityGrid[coords[_j].x][coords[_j].y]++;
+							}
 						}
 					}
 					if (roster[i].isLegal(x, y, Ship.DIRECTION_HORIZONTAL)) {
 						roster[i].create(x, y, Ship.DIRECTION_HORIZONTAL, true);
 						coords = roster[i].getAllShipCells();
-						for (var k = 0; k < coords.length; k++) {
-							this.probabilityGrid[coords[k].x][coords[k].y]++;
+						if (this.passesThroughHitCell(coords)) {
+							for (var k = 0; k < coords.length; k++) {
+								this.probabilityGrid[coords[k].x][coords[k].y] += 50;
+							}
+						} else {
+							for (var _k = 0; _k < coords.length; _k++) {
+								this.probabilityGrid[coords[_k].x][coords[_k].y]++;
+							}
 						}
+					}
+
+					// Set hit cells to probability zero so the AI doesn't
+					// target cells that are already hit
+					if (this.virtualGrid.cells[x][y] === Grid.TYPE_HIT) {
+						this.probabilityGrid[x][y] = 0;
 					}
 				}
 			}
 		}
-		// TODO: Force ships to fit into cells where we have a known hit
-		console.log('==================');
-		console.log(roster);
-		console.log(this.virtualGrid);
 		console.log(this.probabilityGrid);
+		
 	};
 	AI.prototype.resetProbabilities = function() {
 		for (var x = 0; x < Game.size; x++) {
@@ -798,6 +814,16 @@
 				this.probabilityGrid[x][y] = 0;
 			}
 		}
+	};
+	// Checks whether or not a given ship's cells passes through a cell
+	// that is hit
+	AI.prototype.passesThroughHitCell = function(shipCells) {
+		for (var i = 0; i < shipCells.length; i++) {
+			if (this.virtualGrid.cells[shipCells[i].x][shipCells[i].y] === Grid.TYPE_HIT) {
+				return true;
+			}
+		}
+		return false;
 	};
 	AI.prototype.getLegalNeighbors = function() {
 		var candidateCells = [];
