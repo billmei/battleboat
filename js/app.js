@@ -635,10 +635,8 @@ AI.prototype.shoot = function() {
 			for (var _i = 0; _i < shipCells.length; _i++) {
 				this.virtualGrid.cells[shipCells[_i].x][shipCells[_i].y] = Grid.TYPE_SUNK;
 			}
-			
 		}
 	}
-
 	// Update probability grid after each shot
 	this.updateProbabilities();
 };
