@@ -724,11 +724,14 @@
 		// If you hit a ship, keep chasing in the same direction
 		if (result === Grid.TYPE_HIT) {
 			if (this.isShipSunk(this.lastVisitedCell.x, this.lastVisitedCell.y)) {
-				// remove the ship from the virtual fleet
-				this.virtualFleet.fleetRoster.findShipByType(
-					this.getShipType(this.lastVisitedCell.x, this.lastVisitedCell.y)
-				);
-				
+				// Remove any ships from the roster that have been sunk
+				var shipTypes = [];
+				for (var k = 0; k < this.virtualFleet.fleetRoster.length; k++) {
+					shipTypes.push(this.virtualFleet.fleetRoster[k].type);
+				}
+				var index = shipTypes.indexOf(this.getShipType(this.lastVisitedCell.x, this.lastVisitedCell.y));
+				this.virtualFleet.fleetRoster.splice(index, 1);
+
 				// Reset your temporary variables before going back to scout strategy
 				this.chaseDirection = null;
 				this.firstHitCell = null;
@@ -754,12 +757,6 @@
 		var roster = this.virtualFleet.fleetRoster;
 		var coords;
 		this.resetProbabilities();
-		// Remove any ships from the roster that have been sunk
-		for (var ship = 0; ship < roster.length; ship++) {
-			if (roster[ship].isSunk()) {
-				roster.splice(ship, 1);
-			}
-		}
 
 		// Probabilities are not normalized to fit in the interval [0, 1]
 		// because we're going to be dividing things out anyway
