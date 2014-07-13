@@ -4,6 +4,7 @@ html, body {
 	padding: 0;
 	margin: 0;
 	background-color: #ddd;
+	min-width: 860px;
 }
 h1, h2, h3, h4, h5, h6, p, li, span {
 	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
@@ -27,7 +28,7 @@ div {
 
 .container {
 	position: relative;
-	width: 880px;
+	width: 870px;
 	text-align: center;
 	margin: 20px auto 100px auto;
 }
@@ -70,15 +71,17 @@ div {
 		text-decoration: line-through;
 	}
 
-
+.grid-container {
+	width: 430px;
+	display: inline-block;
+}
 .grid-container h2 {
-	width: 420px;
+	width: 430px;
 	display: inline-block;
 }
 
 .grid {
 	vertical-align: top;
-	display: inline-block;
 	padding: 5px;
 	height: 420px;
 	width: 420px;
@@ -87,8 +90,8 @@ div {
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 }
-	.grid:last-child {
-		margin-left: 20px;
+	.grid-container:last-child {
+		margin-left: 10px;
 	}
 	.no-js {
 		width: 300px;
@@ -134,3 +137,12 @@ div {
 	.grid-sunk, .grid-sunk:hover, .human-player .grid-sunk:hover {
 		background-color: #222222;
 	}
+
+@media(max-width: 1300px) {
+	.container {
+		width: 440px;
+	}
+	.grid-container:last-child {
+		margin-left: 0;
+	}
+}
