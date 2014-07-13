@@ -32,7 +32,7 @@ div {
 	text-align: center;
 	margin: 20px auto 100px auto;
 }
-	.sidebar-left {
+	#sidebar-left {
 		width: 150px;
 		padding: 20px;
 		margin: 0;
@@ -45,7 +45,7 @@ div {
 		-moz-border-radius: 5px;
 		border-radius: 5px;
 	}
-		.sidebar-left h2 {
+		#sidebar-left h2 {
 			margin: 0 0 1em 0;
 			text-align: center;
 		}
@@ -60,6 +60,12 @@ div {
 	padding: 0;
 	list-style: none;
 }
+.fleet-roster, .fleet-roster button {
+	opacity: 1;
+	-webkit-transition: all 0.5s ease-out;
+	-o-transition: all 0.5s ease-out;
+	transition: all 0.5s ease-out;
+}
 	.fleet-roster li {
 		margin: 0.5em 0;
 	}
@@ -67,8 +73,22 @@ div {
 			color: #aaa;
 			cursor: pointer;
 		}
-	.sunk {
-		text-decoration: line-through;
+	.fleet-roster .placing {
+		font-weight: bold;
+	}
+	.fleet-roster .placed {
+		visibility: hidden;
+		font-weight: bold;
+		opacity: 0;
+		-webkit-transition: all 0.2s ease-in;
+		-o-transition: all 0.2s ease-in;
+		transition: all 0.2s ease-in;
+	}
+	.invisible {
+		opacity: 0;
+		-webkit-transition: all 0.5s ease-in;
+		-o-transition: all 0.5s ease-in;
+		transition: all 0.5s ease-in;
 	}
 
 .grid-container {

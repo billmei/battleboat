@@ -30,20 +30,18 @@ Game.size = 10; // Default grid size is 10x10
 // You are player 0 and the computer is player 1
 Game.HUMAN_PLAYER = 0;
 Game.COMPUTER_PLAYER = 1;
+
 Game.gameOver = false;
+// Placement variables
+Game.readyToPlay = false;
+Game.stillPlacing = false;
+Game.placeGrid = false;
 // Used for generating temporary ships for calculating
 // the probability heatmap
 Game.VIRTUAL_PLAYER = 2;
 
 Game.prototype.incrementShots = function() {
 	this.shotsTaken++;
-};
-Game.prototype.updateRoster = function(targetFleet) {
-	targetFleet.fleetRoster.forEach(function(ithShip, index, array){
-		if (ithShip.isSunk()) {
-			document.getElementById(AVAILABLE_SHIPS[index]).setAttribute('class', 'sunk');
-		}
-	});
 };
 Game.prototype.checkIfWon = function() {
 	if (this.computerFleet.allShipsSunk()) {
@@ -85,7 +83,6 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
 		// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
 		targetFleet.findShipByCoords(x, y).incrementDamage(); // increase the damage
 		this.incrementShots();
-		// this.updateRoster(targetFleet);
 		this.checkIfWon();
 		return Grid.TYPE_HIT;
 	} else {
@@ -100,12 +97,15 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
  * Creates click event listeners on each one of the 100 grid cells, then passes the result to Game.shoot(x, y)
  * @param event
  */
-Game.prototype.clickListener = function(e) {
-	// extract coordinates from event listener
+Game.prototype.shootListener = function(e) {
+	// Extract coordinates from event listener
 	var x = parseInt(e.target.getAttribute('data-x'), 10);
 	var y = parseInt(e.target.getAttribute('data-y'), 10);
-	// I couldn't figure out how to avoid referencing the global variable here
-	var result = mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
+	var result = null;
+	if (Game.readyToPlay) {
+		// I couldn't figure out how to avoid referencing the global variable here
+		result = mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
+	}
 
 	if (result !== null && !Game.gameOver) {
 		// The AI shoots iff the player clicks on a cell that he/she hasn't
@@ -114,6 +114,67 @@ Game.prototype.clickListener = function(e) {
 	} else {
 		Game.gameOver = false;
 	}
+};
+// Creates click event listeners on each of the ships in the roster
+Game.prototype.rosterListener = function(e) {
+// TODO: Allow the user to change their mind for the ship they want
+// to click instead of forcing to place the ship they've clicked
+// on before moving on to the next one
+	if (!Game.stillPlacing) {
+		Game.stillPlacing = true;
+		Game.placeShipType = e.target.getAttribute('id');
+		document.getElementById(Game.placeShipType).setAttribute('class', 'placing');
+		Game.placeShipDirection = parseInt(document.getElementById('rotate-button').getAttribute('data-direction'), 10);
+		Game.placeGrid = true;
+	}
+};
+Game.prototype.placementListener = function(e) {
+	if (Game.placeGrid) {
+		// Extract coordinates from event listener
+		var x = parseInt(e.target.getAttribute('data-x'), 10);
+		var y = parseInt(e.target.getAttribute('data-y'), 10);
+		
+		// Don't screw up the direction if the user tries to place again.
+
+		var successful = mainGame.humanFleet.placeShip(x, y, Game.placeShipDirection, Game.placeShipType);
+		if (successful) {
+			// Done placing this ship
+			mainGame.donePlacing(Game.placeShipType);
+			Game.stillPlacing = false;
+			Game.placeGrid = false;
+			if (mainGame.allShipsPlaced()) {
+				document.getElementById('rotate-button').setAttribute('class', 'invisible');
+				document.getElementById('start-game').setAttribute('class', '');
+			}
+		}
+	}
+};
+Game.prototype.rotationToggle = function(e) {
+	// Toggle rotation direction
+	var direction = parseInt(e.target.getAttribute('data-direction'), 10);
+	if (direction === Ship.DIRECTION_VERTICAL) {
+		e.target.setAttribute('data-direction', '1');
+		Game.placeShipDirection = Ship.DIRECTION_HORIZONTAL;
+	} else if (direction === Ship.DIRECTION_HORIZONTAL) {
+		e.target.setAttribute('data-direction', '0');
+		Game.placeShipDirection = Ship.DIRECTION_VERTICAL;
+	}
+};
+Game.prototype.startGame = function(e) {
+	document.getElementById('sidebar-left').setAttribute('class', 'invisible');
+	Game.readyToPlay = true;
+};
+Game.prototype.donePlacing = function(shipType) {
+	document.getElementById(shipType).setAttribute('class', 'placed');
+};
+Game.prototype.allShipsPlaced = function() {
+	var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
+	for (var i = 0; i < playerRoster.length; i++) {
+		if (playerRoster[i].getAttribute('class') === null) {
+			return false;
+		}
+	}
+	return true;
 };
 /**
  * Resets the fog of war
@@ -125,6 +186,10 @@ Game.prototype.resetFogOfWar = function() {
 			this.computerGrid.updateCell(i, j, 'empty', Game.COMPUTER_PLAYER);
 		}
 	}
+};
+// Resets CSS styling of the sidebar
+Game.prototype.resetRosterSidebar = function() {
+
 };
 /**
  * Generates the HTML divs for the grid
@@ -159,21 +224,35 @@ Game.prototype.initialize = function() {
 
 	// Reset game variables
 	this.shotsTaken = 0;
+	Game.gameOver = false;
+	Game.readyToPlay = false;
+	Game.stillPlacing = false;
+	Game.placeGrid = false;
 
-	// Reset fleet roster display
-	var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
-	for (var i = 0; i < playerRoster.length; i++) {
-		playerRoster[i].setAttribute('class', '');
-	}
 
 	// Add a click listener for the Grid.shoot() method for all cells
 	// Only add this listener to the computer's grid
-	var gridCells = document.querySelector('.computer-player').childNodes;
-	for (var j = 0; j < gridCells.length; j++) {
-		gridCells[j].addEventListener('click', this.clickListener, false);
+	var computerCells = document.querySelector('.computer-player').childNodes;
+	for (var j = 0; j < computerCells.length; j++) {
+		computerCells[j].addEventListener('click', this.shootListener, false);
 	}
-	this.humanFleet.placeShips();
-	this.computerFleet.placeShips();
+
+	// Add a click listener to the roster	
+	var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
+	for (var i = 0; i < playerRoster.length; i++) {
+		playerRoster[i].addEventListener('click', this.rosterListener, false);
+	}
+
+	// Add a click listener to the human player's grid while placing
+	var humanCells = document.querySelector('.human-player').childNodes;
+	for (var k = 0; k < humanCells.length; k++) {
+		humanCells[k].addEventListener('click', this.placementListener, false);
+	}
+
+	document.getElementById('rotate-button').addEventListener('click', this.rotationToggle, false);
+	document.getElementById('start-game').addEventListener('click', this.startGame, false);
+
+	this.computerFleet.placeShipsRandomly();
 };
 
 /**
@@ -288,7 +367,8 @@ Grid.prototype.containsDamagedShip = function(x, y) {
 /**
  * Fleet object
  *
- * @param playerOwner
+ * @param playerGrid
+ * @param player
  * @constructor
  */
 function Fleet(playerGrid, player) {
@@ -310,25 +390,29 @@ Fleet.prototype.populate = function() {
 		this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.playerGrid, this.player));
 	}
 };
-Fleet.prototype.placeShips = function() {
+// Returns whether or not the placement was successful
+Fleet.prototype.placeShip = function(x, y, direction, shipType) {
 	var shipCoords;
-	if (this.player === Game.HUMAN_PLAYER) {
-		this.placeShipsRandomly();
-		for (var i = 0; i < this.fleetRoster.length; i++) {
+	for (var i = 0; i < this.fleetRoster.length; i++) {
+		var shipTypes = this.fleetRoster[i].type;
+
+		if (shipType === shipTypes &&
+			this.fleetRoster[i].isLegal(x, y, direction)) {
+			this.fleetRoster[i].create(x, y, direction, false);
 			shipCoords = this.fleetRoster[i].getAllShipCells();
+
 			for (var j = 0; j < shipCoords.length; j++) {
 				this.playerGrid.updateCell(shipCoords[j].x, shipCoords[j].y, 'ship', this.player);
 			}
+			return true;
 		}
-
-	} else if (this.player === Game.COMPUTER_PLAYER) {
-		// TODO: Avoid placing ships too close to each other
-		this.placeShipsRandomly();
 	}
+	return false;
 };
 /**
  * Handles placing ships randomly on the board.
  *
+ * TODO: Avoid placing ships too close to each other
  * TODO: This should probably use some dependency injection
  */
 Fleet.prototype.placeShipsRandomly = function() {
