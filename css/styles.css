@@ -113,13 +113,13 @@ div {
 			cursor: pointer; /* Fallback */
 			background-color: #66A3D2;
 		}
-		.player-0-grid .grid-cell:hover {
+		.human-player .grid-cell:hover {
 			background-color: #99C2E1;
 		}
-		.player-1-grid .grid-cell:hover, .player-1-grid:hover {
+		.computer-player .grid-cell:hover, .computer-player:hover {
 			cursor: url('../img/crosshair.png') 16 16, crosshair;
 		}
-	.grid-ship, .player-0-grid .grid-ship:hover {
+	.grid-ship, .human-player .grid-ship:hover {
 		background-color: #808080;
 	}
 	.grid-miss, .grid-miss:hover {
