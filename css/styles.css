@@ -32,14 +32,14 @@ div {
 	margin: 20px auto 100px auto;
 }
 	.sidebar-left {
-		width: 210px;
+		width: 150px;
 		padding: 20px;
 		margin: 0;
 		background-color: #EEEEEE;
 		position: absolute;
 		/*text-align: left;*/
-		top: 13em;
-		left: -260px;
+		top: 21.8em;
+		left: -200px;
 		-webkit-border-radius: 5px;
 		-moz-border-radius: 5px;
 		border-radius: 5px;
@@ -62,6 +62,10 @@ div {
 	.fleet-roster li {
 		margin: 0.5em 0;
 	}
+		.fleet-roster li:hover {
+			color: #aaa;
+			cursor: pointer;
+		}
 	.sunk {
 		text-decoration: line-through;
 	}
@@ -99,7 +103,7 @@ div {
 		height: 40px;
 		width: 40px;
 		display: inline-block;
-		background-color: #66A3D2;
+		background-color: #99C2E1;
 		margin: 1px;
 		-webkit-border-radius: 2px;
 		-moz-border-radius: 2px;
@@ -109,18 +113,26 @@ div {
 			cursor: pointer;
 			background-color: #7EB3DA;
 		}
+		.player-0-grid .grid-cell {
+			background-color: #EEEEEE;
+		}
 		.player-1-grid .grid-cell:hover {
 			cursor: url('../img/crosshair.png') 16 16, crosshair;
 		}
-	.grid-ship {
+	.grid-ship, .player-0-grid .grid-ship {
 		background-color: #C0C0C0;
 	}
 	.grid-miss, .grid-miss:hover {
 		background-color: #EEEEEE;
 	}
-	.grid-hit, .grid-hit:hover {
+		.player-0-grid .grid-miss {
+			background-image: url('../img/cross-icon.png');
+			background-position: center;
+			background-repeat: no-repeat;
+		}
+	.grid-hit, .player-0-grid .grid-hit, .grid-hit:hover {
 		background-color: #F60018;
 	}
-	.grid-sunk, .grid-sunk:hover {
+	.grid-sunk, .player-0-grid .grid-sunk, .grid-sunk:hover {
 		background-color: #222222;
 	}
