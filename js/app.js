@@ -615,26 +615,26 @@
 	};
 	AI.prototype.scout = function() {
 		// Pick up here: Find the maximum in the probability array and target that cell
+		var maxProbability = 0;
+		var maxProbCoords = {'directionName': 'none'};
+		for (var x = 0; x < Game.size; x++) {
+			for (var y = 0; y < Game.size; y++) {
+				if (this.probabilityGrid[x][y] > maxProbability) {
+					maxProbability = this.probabilityGrid[x][y];
+					maxProbCoords.x = x;
+					maxProbCoords.y = y;
+				}
+			}
+		}
 
-		// for (var x = 0; x < Game.size; x++) {
-		// 	for (var y = 0; y < Game.size; y++) {
-		// 		// do stuff
-		// 	}
-		// }
-
-		// shoots randomly only in parity grid order for now
-		var randomCoords = Math.floor(this.unvisitedCells.length * Math.random());
-		var randomX = this.unvisitedCells[randomCoords].x;
-		var randomY = this.unvisitedCells[randomCoords].y;
-
-		var result = this.gameObject.shoot(randomX, randomY, Game.HUMAN_PLAYER);
+		var result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, Game.HUMAN_PLAYER);
 		if (result === Grid.TYPE_HIT) {
 			this.currentStrategy = 'chase';
 		} else if (result === Grid.TYPE_MISS) {
 			this.currentStrategy = 'scout';
 		}
-		this.lastVisitedCell = this.unvisitedCells[randomCoords];
-		this.lastVisitedCell.directionName = 'none';
+
+		this.lastVisitedCell = maxProbCoords;
 
 		// Update the AI's visible grid with the result
 		if (result === null || result === undefined) {
@@ -647,7 +647,7 @@
 		}
 		this.virtualGrid.cells[this.lastVisitedCell.x][this.lastVisitedCell.y] = result;
 
-		this.unvisitedCells.splice(randomCoords, 1);
+		// this.unvisitedCells.splice(maxProbCoords, 1);
 	};
 	AI.prototype.chase = function() {
 		var candidateCells = [];
@@ -723,15 +723,22 @@
 
 		// If you hit a ship, keep chasing in the same direction
 		if (result === Grid.TYPE_HIT) {
-			if (this.isShipSunk(this.lastVisitedCell.x, this.lastVisitedCell.y)) {
+			var humanShip = this.findHumanShip(this.lastVisitedCell.x, this.lastVisitedCell.y);
+			if (humanShip.isSunk()) {
 				// Remove any ships from the roster that have been sunk
 				var shipTypes = [];
 				for (var k = 0; k < this.virtualFleet.fleetRoster.length; k++) {
 					shipTypes.push(this.virtualFleet.fleetRoster[k].type);
 				}
-				var index = shipTypes.indexOf(this.getShipType(this.lastVisitedCell.x, this.lastVisitedCell.y));
+				var index = shipTypes.indexOf(humanShip.type);
 				this.virtualFleet.fleetRoster.splice(index, 1);
 
+				// Update the virtual grid with the sunk ship's cells
+				var shipCells = humanShip.getAllShipCells();
+				for (var _i = 0; _i < shipCells.length; _i++) {
+					this.virtualGrid.cells[shipCells[_i].x][shipCells[_i].y] = Grid.TYPE_SUNK;
+				}
+				
 				// Reset your temporary variables before going back to scout strategy
 				this.chaseDirection = null;
 				this.firstHitCell = null;
@@ -746,11 +753,8 @@
 		}
 
 	};
-	AI.prototype.isShipSunk = function(x, y) {
-		return this.gameObject.humanFleet.findShipByCoords(x, y).isSunk();
-	};
-	AI.prototype.getShipType = function(x, y) {
-		return this.gameObject.humanFleet.findShipByCoords(x, y).type;
+	AI.prototype.findHumanShip = function(x, y) {
+		return this.gameObject.humanFleet.findShipByCoords(x, y);
 	};
 
 	AI.prototype.updateProbabilities = function() {
