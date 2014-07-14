@@ -6,8 +6,8 @@
 // Thanks to Nick Berry for the inspiration behind the AI
 // http://www.datagenetics.com/blog/december32011/
 
-// TODO: Reset player roster when the game ends
 // TODO: Disable zoom on mobile
+// TODO: Go through every function and update the documentation
 
 // TODO: Google Analytics to track win/loss rates against real human players
 // TODO: Use analytics to track average number of shots taken
@@ -18,13 +18,8 @@
 
 var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
-/**
- * Game manager object
- *
- * @param size
- * @param numShips
- * @constructor
- */
+// Game manager object
+// Constructor
 function Game(size) {
 	Game.size = size;
 	this.shotsTaken = 0;
@@ -45,9 +40,11 @@ Game.placingOnGrid = false;
 // the probability heatmap
 Game.VIRTUAL_PLAYER = 2;
 
+// Increments the shots
 Game.prototype.incrementShots = function() {
 	this.shotsTaken++;
 };
+// Checks if the game is won, and if it is, re-initializes the game
 Game.prototype.checkIfWon = function() {
 	if (this.computerFleet.allShipsSunk()) {
 		alert('Congratulations, you win!');
@@ -61,8 +58,8 @@ Game.prototype.checkIfWon = function() {
 		this.initialize();
 	}
 };
-
-// Shots at the target player on the grid. Returns what the shot uncovered
+// Shoots at the target player on the grid.
+// Returns {int} Grid.TYPE: What the shot uncovered
 Game.prototype.shoot = function(x, y, targetPlayer) {
 	var targetGrid;
 	var targetFleet;
@@ -98,10 +95,7 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
 	}
 
 };
-/**
- * Creates click event listeners on each one of the 100 grid cells, then passes the result to Game.shoot(x, y)
- * @param event
- */
+// Creates click event listeners on each one of the 100 grid cells
 Game.prototype.shootListener = function(e) {
 	// Extract coordinates from event listener
 	var x = parseInt(e.target.getAttribute('data-x'), 10);
@@ -121,7 +115,7 @@ Game.prototype.shootListener = function(e) {
 		Game.gameOver = false;
 	}
 };
-// Creates click event listeners on each of the ships in the roster
+// Creates click event listeners on each of the ship names in the roster
 Game.prototype.rosterListener = function(e) {
 	// TODO: Allow the user to change their mind for the ship they want
 	// to click instead of forcing to place the ship they've clicked
@@ -134,6 +128,8 @@ Game.prototype.rosterListener = function(e) {
 		Game.placingOnGrid = true;
 	}
 };
+// Creates click event listeners on the human player's grid to handle
+// ship placement after the user has selected a ship name
 Game.prototype.placementListener = function(e) {
 	if (Game.placingOnGrid) {
 		// Extract coordinates from event listener
@@ -158,6 +154,9 @@ Game.prototype.placementListener = function(e) {
 		}
 	}
 };
+// Creates mouseover event listeners that handles mouseover on the
+// human player's grid to draw a phantom ship implying that the user
+// is allowed to place a ship there
 Game.prototype.placementMouseover = function(e) {
 	if (Game.placingOnGrid) {
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
@@ -187,6 +186,8 @@ Game.prototype.placementMouseover = function(e) {
 		}
 	}
 };
+// Creates mouseout event listeners that un-draws the phantom ship
+// on the human player's grid as the user hovers over a different cell
 Game.prototype.placementMouseout = function(e) {
 	if (Game.placingOnGrid) {
 		for (var j = 0; j < Game.placeShipCoords.length; j++) {
@@ -200,6 +201,7 @@ Game.prototype.placementMouseout = function(e) {
 		}
 	}
 };
+// Click handler for the Rotate Ship button
 Game.prototype.toggleRotation = function(e) {
 	// Toggle rotation direction
 	var direction = parseInt(e.target.getAttribute('data-direction'), 10);
@@ -211,6 +213,7 @@ Game.prototype.toggleRotation = function(e) {
 		Game.placeShipDirection = Ship.DIRECTION_VERTICAL;
 	}
 };
+// Click handler for the Start Game button
 Game.prototype.startGame = function(e) {
 	var el = document.getElementById('sidebar-left');
 	var fn = function() {el.setAttribute('class', 'hidden');};
@@ -219,6 +222,7 @@ Game.prototype.startGame = function(e) {
 	Game.readyToPlay = true;
 	el.removeEventListener(transitionEndEventName(),fn,false);
 };
+// Ends placing the current ship
 Game.prototype.endPlacing = function(shipType) {
 	document.getElementById(shipType).setAttribute('class', 'placed');
 	// Wipe out the variable when you're done with it
@@ -226,7 +230,8 @@ Game.prototype.endPlacing = function(shipType) {
 	Game.placeShipType = '';
 	Game.placeShipCoords = [];
 };
-// Checks whether or not all ships are done
+// Checks whether or not all ships are done placing
+// Returns boolean
 Game.prototype.areAllShipsPlaced = function() {
 	var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
 	for (var i = 0; i < playerRoster.length; i++) {
@@ -240,9 +245,7 @@ Game.prototype.areAllShipsPlaced = function() {
 	Game.placeShipCoords = [];
 	return true;
 };
-/**
- * Resets the fog of war
- */
+// Resets the fog of war
 Game.prototype.resetFogOfWar = function() {
 	for (var i = 0; i < Game.size; i++) {
 		for (var j = 0; j < Game.size; j++) {
@@ -261,11 +264,8 @@ Game.prototype.resetRosterSidebar = function() {
 	document.getElementById('rotate-button').removeAttribute('class');
 	document.getElementById('start-game').setAttribute('class', 'hidden');
 };
-/**
- * Generates the HTML divs for the grid
- */
+// Generates the HTML divs for the grid for both players
 Game.prototype.createGrid = function() {
-	// Generates the HTML grids for both players
 	var gridDiv = document.querySelectorAll('.grid');
 	for (var grid = 0; grid < gridDiv.length; grid++) {
 		gridDiv[grid].removeChild(gridDiv[grid].querySelector('.no-js')); // Removes the no-js warning
@@ -281,9 +281,7 @@ Game.prototype.createGrid = function() {
 	}
 	
 };
-/**
- * Initializes the game
- */
+// Initializes the Game. Also resets the game if previously initialized
 Game.prototype.initialize = function() {
 	this.humanGrid = new Grid(Game.size);
 	this.computerGrid = new Grid(Game.size);
@@ -331,11 +329,8 @@ Game.prototype.initialize = function() {
 	this.computerFleet.placeShipsRandomly();
 };
 
-/**
- * Grid Object
- * @param size
- * @constructor
- */
+// Grid object
+// Constructor
 function Grid(size) {
 	this.size = size;
 	this.cells = [];
@@ -354,9 +349,7 @@ Grid.TYPE_MISS = 2; // 2 = water with a cannonball in it (missed shot)
 Grid.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
 Grid.TYPE_SUNK = 4; // 4 = sunk ship
 
-/**
- * Grid initialization routine
- */
+// Initialize and populate the grid
 Grid.prototype.initialize = function() {
 	for (var x = 0; x < this.size; x++) {
 		var row = [];
@@ -367,14 +360,7 @@ Grid.prototype.initialize = function() {
 	}
 };
 
-/**
- * Updates a cell class based on the type passed in
- *
- * @param x
- * @param y
- * @param type
- * @param targetPlayer
- */
+// Updates the cell's CSS class based on the type passed in
 Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 	var player;
 	if (targetPlayer === Game.HUMAN_PLAYER) {
@@ -384,7 +370,6 @@ Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 	} else {
 		// Should never be called
 		console.log("There was an error trying to find the correct player's grid");
-	
 	}
 
 	switch (type) {
@@ -410,43 +395,27 @@ Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 	var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type];
 	document.querySelector('.' + player + ' .grid-cell-' + x + '-' + y).setAttribute('class', classes.join(' '));
 };
-/**
- * Checks to see if a cell contains an undamaged ship
- *
- * @param x
- * @param y
- * @returns {boolean}
- */
+// Checks to see if a cell contains an undamaged ship
+// Returns boolean
 Grid.prototype.containsUndamagedShip = function(x, y) {
 	return this.cells[x][y] === Grid.TYPE_SHIP;
 };
-/**
- * Checks to see if a cell contains a cannonball
- *
- * @param x
- * @param y
- * @returns {boolean}
- */
+// Checks to see if the shot was missed. This is equivalent
+// to checking if a cell contains a cannonball
+// Returns boolean
 Grid.prototype.containsCannonball = function(x, y) {
 	return this.cells[x][y] === Grid.TYPE_MISS;
 };
-/**
- * Checks to see if a cell contains a damaged ship
- * @param x
- * @param y
- * @returns {boolean}
- */
+// Checks to see if a cell contains a damaged ship,
+// either hit or sunk.
+// Returns boolean
 Grid.prototype.containsDamagedShip = function(x, y) {
 	return this.cells[x][y] === Grid.TYPE_HIT || this.cells[x][y] === Grid.TYPE_SUNK;
 };
 
-/**
- * Fleet object
- *
- * @param playerGrid
- * @param player
- * @constructor
- */
+// Fleet object
+// This object is used to keep track of a player's portfolio of ships
+// Constructor
 function Fleet(playerGrid, player) {
 	this.numShips = AVAILABLE_SHIPS.length;
 	this.playerGrid = playerGrid;
@@ -454,11 +423,7 @@ function Fleet(playerGrid, player) {
 	this.fleetRoster = [];
 	this.populate();
 }
-/**
- * Populates a fleet
- *
- * TODO: Remove the hardcoded dependency on available ships
- */
+// Populates a fleet
 Fleet.prototype.populate = function() {
 	for (var i = 0; i < this.numShips; i++) {
 		// loop over the ship types when numShips > AVAILABLE_SHIPS.length
@@ -467,6 +432,7 @@ Fleet.prototype.populate = function() {
 	}
 };
 // Places the ship and returns whether or not the placement was successful
+// Returns boolean
 Fleet.prototype.placeShip = function(x, y, direction, shipType) {
 	var shipCoords;
 	for (var i = 0; i < this.fleetRoster.length; i++) {
@@ -485,12 +451,8 @@ Fleet.prototype.placeShip = function(x, y, direction, shipType) {
 	}
 	return false;
 };
-/**
- * Handles placing ships randomly on the board.
- *
- * TODO: Avoid placing ships too close to each other
- * TODO: This should probably use some dependency injection
- */
+// Places ships randomly on the board
+// TODO: Avoid placing ships too close to each other
 Fleet.prototype.placeShipsRandomly = function() {
 	for (var i = 0; i < this.fleetRoster.length; i++) {
 		var illegalPlacement = true;
@@ -507,14 +469,9 @@ Fleet.prototype.placeShipsRandomly = function() {
 		}
 	}
 };
-/**
- * Finds a ship by location
- * Returns the ship object located at (x, y)
- * If no ship exists at (x, y), this returns null.
- * @param x
- * @param y
- * @returns {*}
- */
+// Finds a ship by location
+// Returns the ship object located at (x, y)
+// If no ship exists at (x, y), this returns null instead
 Fleet.prototype.findShipByCoords = function(x, y) {
 	for (var i = 0; i < this.fleetRoster.length; i++) {
 		var currentShip = this.fleetRoster[i];
@@ -538,13 +495,10 @@ Fleet.prototype.findShipByCoords = function(x, y) {
 	}
 	return null;
 };
-/**
- * Finds a ship by type
- * Returns the ship object that is of type 'type'
- * If no ship exists, this returns null.
- * @param type
- * @returns {*}
- */
+// Finds a ship by its type
+// Param shipType is a string
+// Returns the ship object that is of type shipType
+// If no ship exists, this returns null.
 Fleet.prototype.findShipByType = function(shipType) {
 	for (var i = 0; i < this.fleetRoster.length; i++) {
 		if (this.fleetRoster[i].type === shipType) {
@@ -553,11 +507,8 @@ Fleet.prototype.findShipByType = function(shipType) {
 	}
 	return null;
 };
-/**
- * Checks to see if all ships have been sunk
- *
- * @returns {boolean}
- */
+// Checks to see if all ships have been sunk
+// Returns boolean
 Fleet.prototype.allShipsSunk = function() {
 	for (var i = 0; i < this.fleetRoster.length; i++) {
 		// If one or more ships are not sunk, then the sentence "all ships are sunk" is false.
@@ -568,13 +519,8 @@ Fleet.prototype.allShipsSunk = function() {
 	return true;
 };
 
-/**
- * Ship object
- *
- * @param type
- * @param playerGrid
- * @constructor
- */
+// Ship object
+// Constructor
 function Ship(type, playerGrid, player) {
 	this.damage = 0;
 	this.type = type;
@@ -604,14 +550,8 @@ function Ship(type, playerGrid, player) {
 	this.maxDamage = this.shipLength;
 	this.sunk = false;
 }
-/**
- * Checks to see if the placement of a ship is legal
- *
- * @param x
- * @param y
- * @param direction
- * @returns {boolean}
- */
+// Checks to see if the placement of a ship is legal
+// Returns boolean
 Ship.prototype.isLegal = function(x, y, direction) {
 	// first, check if the ship is within the grid...
 	if (this.withinBounds(x, y, direction)) {
@@ -636,13 +576,8 @@ Ship.prototype.isLegal = function(x, y, direction) {
 		return false;
 	}
 };
-/**
- * Checks to see if the ship is within bounds
- * @param x
- * @param y
- * @param direction
- * @returns {boolean}
- */
+// Checks to see if the ship is within bounds of the grid
+// Returns boolean
 Ship.prototype.withinBounds = function(x, y, direction) {
 	if (direction === Ship.DIRECTION_VERTICAL) {
 		return x + this.shipLength <= Game.size;
@@ -650,30 +585,20 @@ Ship.prototype.withinBounds = function(x, y, direction) {
 		return y + this.shipLength <= Game.size;
 	}
 };
-/**
- * Increments the damage counter of a ship
- *
- * @returns {Ship}
- */
+// Increments the damage counter of a ship
+// Returns Ship
 Ship.prototype.incrementDamage = function() {
 	this.damage++;
 	if (this.isSunk()) {
 		this.sinkShip(false); // Sinks the ship
 	}
-	return this; // Returns back the ship object so that I can chain the method calls in Game.shoot()
 };
-/**
- * Checks to see if the ship is sunk
- *
- * @returns {boolean}
- */
+// Checks to see if the ship is sunk
+// Returns boolean
 Ship.prototype.isSunk = function() {
 	return this.damage >= this.maxDamage;
 };
-/**
- * Sinks the ship
- *
- */
+// Sinks the ship
 Ship.prototype.sinkShip = function(virtual) {
 	this.damage = this.maxDamage; // Force the damage to exceed max damage
 	this.sunk = true;
@@ -689,7 +614,7 @@ Ship.prototype.sinkShip = function(virtual) {
 /**
  * Gets all the ship cells
  *
- * returns an array with all (x, y) coordinates of the ship:
+ * Returns an array with all (x, y) coordinates of the ship:
  * e.g.
  * [
  *	{'x':2, 'y':2},
@@ -708,14 +633,9 @@ Ship.prototype.getAllShipCells = function() {
 	}
 	return resultObject;
 };
-/**
- * Creates a ship
- *
- * @param x
- * @param y
- * @param direction
- * @param virtual
- */
+// Initializes a ship with the given coordinates and direction (bearing).
+// If the ship is declared "virtual", then the ship gets initialized with
+// its coordinates but DOESN'T get placed on the grid.
 Ship.prototype.create = function(x, y, direction, virtual) {
 	// This function assumes that you've already checked that the placement is legal
 	this.xPosition = x;
@@ -739,7 +659,9 @@ Ship.prototype.create = function(x, y, direction, virtual) {
 Ship.DIRECTION_VERTICAL = 0;
 Ship.DIRECTION_HORIZONTAL = 1;
 
+// AI Object
 // Optimal battleship-playing AI
+// Constructor
 function AI(gameObject) {
 	this.gameObject = gameObject;
 	this.virtualGrid = new Grid(Game.size);
@@ -750,6 +672,7 @@ function AI(gameObject) {
 	this.updateProbabilities();
 }
 AI.PROB_WEIGHT = 50; // arbitrarily big number
+// Initializes the probability grid for targeting
 AI.prototype.initializeProbabilities = function() {
 	for (var x = 0; x < Game.size; x++) {
 		var row = [];
@@ -759,7 +682,8 @@ AI.prototype.initializeProbabilities = function() {
 		}
 	}
 };
-// Scouts the grid based on max probability
+// Scouts the grid based on max probability, and shoots at the cell
+// that has the highest probability of containing a ship
 AI.prototype.shoot = function() {
 	var maxProbability = 0;
 	var maxProbCoords = {};
@@ -805,19 +729,28 @@ AI.prototype.shoot = function() {
 	// Update probability grid after each shot
 	this.updateProbabilities();
 };
+// finds a human ship by coordinates
+// Returns Ship
 AI.prototype.findHumanShip = function(x, y) {
 	return this.gameObject.humanFleet.findShipByCoords(x, y);
 };
 
+// Update the probability grid
 AI.prototype.updateProbabilities = function() {
 	var roster = this.virtualFleet.fleetRoster;
 	var coords;
 	this.resetProbabilities();
 
 	// Probabilities are not normalized to fit in the interval [0, 1]
-	// because we're only interested in the maximum value
-	// Try fitting each ship in each cell in every orientation
-	// TODO: Think about a more efficient way of doing this
+	// because we're only interested in the maximum value.
+
+	// This works by trying to fit each ship in each cell in every orientation
+	// For every cell, the more legal ways a ship can pass through it, the more
+	// likely the cell is to contain a ship.
+	// Cells that surround known 'hits' are given an arbitrarily large probability
+	// so that the AI tries to completely sink the ship before moving on.
+
+	// TODO: Think about a more efficient implementation
 	for (var i = 0; i < roster.length; i++) {
 		for (var x = 0; x < Game.size; x++) {
 			for (var y = 0; y < Game.size; y++) {
@@ -856,8 +789,9 @@ AI.prototype.updateProbabilities = function() {
 			}
 		}
 	}
-	
 };
+
+// Resets the probability grid to all 0.
 AI.prototype.resetProbabilities = function() {
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
@@ -865,8 +799,9 @@ AI.prototype.resetProbabilities = function() {
 		}
 	}
 };
-// Checks whether or not a given ship's cells passes through a cell
-// that is hit
+// Checks whether or not a given ship's cells passes through
+// any cell that is hit.
+// Returns boolean
 AI.prototype.passesThroughHitCell = function(shipCells) {
 	for (var i = 0; i < shipCells.length; i++) {
 		if (this.virtualGrid.cells[shipCells[i].x][shipCells[i].y] === Grid.TYPE_HIT) {
@@ -877,6 +812,7 @@ AI.prototype.passesThroughHitCell = function(shipCells) {
 };
 // Gives the number of hit cells the ships passes through. The more
 // cells this is, the more probable the ship exists in those coordinates
+// Returns int
 AI.prototype.numHitCellsCovered = function(shipCells) {
 	var cells = 0;
 	for (var i = 0; i < shipCells.length; i++) {
@@ -887,6 +823,7 @@ AI.prototype.numHitCellsCovered = function(shipCells) {
 	return cells;
 };
 
+// Start the game
 var mainGame = new Game(10);
 })();
 
@@ -957,6 +894,8 @@ if (!Array.prototype.indexOf) {
 	};
 }
 
+// Browser compatability workaround for transition end event names.
+// From modernizr: http://stackoverflow.com/a/9090128
 function transitionEndEventName() {
 	var i,
 		undefined,
