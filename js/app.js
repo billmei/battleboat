@@ -6,35 +6,35 @@
 // Thanks to Nick Berry for the inspiration behind the AI
 // http://www.datagenetics.com/blog/december32011/
 
-// TODO: Google Analytics to track win/loss rates against real human players
-// TODO: Use analytics to track average number of shots taken
-// TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0)
 // TODO: Log and display the user's win percentage. Store via localstorage
+// TODO: Use analytics to track win/loss rates against real human players
+// TODO: Use analytics to track average number of shots taken
+// TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0) [Don't track the win/loss if the heatmap is turned on]
 // TODO: Use `Array.filter()` instead of for-loop checking each element
 // TODO: Change the `alert()`s to CSS transition for a win screen
 // TODO: Meta-game the user between playsessions
 
 // Global Constants
-function Constants() {}
-Constants.AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
+function CONST() {}
+CONST.AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 // You are player 0 and the computer is player 1
 // The virtual player is used for generating temporary ships
 // for calculating the probability heatmap
-Constants.HUMAN_PLAYER = 0;
-Constants.COMPUTER_PLAYER = 1;
-Constants.VIRTUAL_PLAYER = 2;
+CONST.HUMAN_PLAYER = 0;
+CONST.COMPUTER_PLAYER = 1;
+CONST.VIRTUAL_PLAYER = 2;
 // Possible values for the parameter `type` (string)
-Constants.CSS_TYPE__EMPTY = 'empty';
-Constants.CSS_TYPE__SHIP = 'ship';
-Constants.CSS_TYPE__MISS = 'miss';
-Constants.CSS_TYPE__HIT = 'hit';
-Constants.CSS_TYPE__SUNK = 'sunk';
+CONST.CSS_TYPE_EMPTY = 'empty';
+CONST.CSS_TYPE_SHIP = 'ship';
+CONST.CSS_TYPE_MISS = 'miss';
+CONST.CSS_TYPE_HIT = 'hit';
+CONST.CSS_TYPE_SUNK = 'sunk';
 // Grid code:
-Constants.TYPE_EMPTY = 0; // 0 = water (empty)
-Constants.TYPE_SHIP = 1; // 1 = undamaged ship
-Constants.TYPE_MISS = 2; // 2 = water with a cannonball in it (missed shot)
-Constants.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
-Constants.TYPE_SUNK = 4; // 4 = sunk ship
+CONST.TYPE_EMPTY = 0; // 0 = water (empty)
+CONST.TYPE_SHIP = 1; // 1 = undamaged ship
+CONST.TYPE_MISS = 2; // 2 = water with a cannonball in it (missed shot)
+CONST.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
+CONST.TYPE_SUNK = 4; // 4 = sunk ship
 
 // Game manager object
 // Constructor
@@ -74,10 +74,10 @@ Game.prototype.checkIfWon = function() {
 Game.prototype.shoot = function(x, y, targetPlayer) {
 	var targetGrid;
 	var targetFleet;
-	if (targetPlayer === Constants.HUMAN_PLAYER) {
+	if (targetPlayer === CONST.HUMAN_PLAYER) {
 		targetGrid = this.humanGrid;
 		targetFleet = this.humanFleet;
-	} else if (targetPlayer === Constants.COMPUTER_PLAYER) {
+	} else if (targetPlayer === CONST.COMPUTER_PLAYER) {
 		targetGrid = this.computerGrid;
 		targetFleet = this.computerFleet;
 	} else {
@@ -97,12 +97,12 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
 		targetFleet.findShipByCoords(x, y).incrementDamage(); // increase the damage
 		this.incrementShots();
 		this.checkIfWon();
-		return Constants.TYPE_HIT;
+		return CONST.TYPE_HIT;
 	} else {
 		targetGrid.updateCell(x, y, 'miss', targetPlayer);
 		this.incrementShots();
 		this.checkIfWon();
-		return Constants.TYPE_MISS;
+		return CONST.TYPE_MISS;
 	}
 };
 // Creates click event listeners on each one of the 100 grid cells
@@ -113,8 +113,7 @@ Game.prototype.shootListener = function(e) {
 	var result = null;
 	if (Game.readyToPlay) {
 		// I couldn't figure out how to avoid referencing the global variable here
-		// TODO: Put all the listeners in a new controller object?
-		result = mainGame.shoot(x, y, Constants.COMPUTER_PLAYER);
+		result = mainGame.shoot(x, y, CONST.COMPUTER_PLAYER);
 
 		// Remove the tutorial arrow
 		if (gameTutorial.showTutorial) {
@@ -286,8 +285,8 @@ Game.prototype.areAllShipsPlaced = function() {
 Game.prototype.resetFogOfWar = function() {
 	for (var i = 0; i < Game.size; i++) {
 		for (var j = 0; j < Game.size; j++) {
-			this.humanGrid.updateCell(i, j, 'empty', Constants.HUMAN_PLAYER);
-			this.computerGrid.updateCell(i, j, 'empty', Constants.COMPUTER_PLAYER);
+			this.humanGrid.updateCell(i, j, 'empty', CONST.HUMAN_PLAYER);
+			this.computerGrid.updateCell(i, j, 'empty', CONST.COMPUTER_PLAYER);
 		}
 	}
 };
@@ -327,8 +326,8 @@ Game.prototype.createGrid = function() {
 Game.prototype.initialize = function() {
 	this.humanGrid = new Grid(Game.size);
 	this.computerGrid = new Grid(Game.size);
-	this.humanFleet = new Fleet(this.humanGrid, Constants.HUMAN_PLAYER);
-	this.computerFleet = new Fleet(this.computerGrid, Constants.COMPUTER_PLAYER);
+	this.humanFleet = new Fleet(this.humanGrid, CONST.HUMAN_PLAYER);
+	this.computerFleet = new Fleet(this.computerGrid, CONST.COMPUTER_PLAYER);
 
 	this.robot = new AI(this);
 
@@ -384,7 +383,7 @@ Grid.prototype.initialize = function() {
 		var row = [];
 		this.cells[x] = row;
 		for (var y = 0; y < this.size; y++) {
-			row.push(Constants.TYPE_EMPTY);
+			row.push(CONST.TYPE_EMPTY);
 		}
 	}
 };
@@ -392,9 +391,9 @@ Grid.prototype.initialize = function() {
 // Updates the cell's CSS class based on the type passed in
 Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 	var player;
-	if (targetPlayer === Constants.HUMAN_PLAYER) {
+	if (targetPlayer === CONST.HUMAN_PLAYER) {
 		player = 'human-player';
-	} else if (targetPlayer === Constants.COMPUTER_PLAYER) {
+	} else if (targetPlayer === CONST.COMPUTER_PLAYER) {
 		player = 'computer-player';
 	} else {
 		// Should never be called
@@ -402,23 +401,23 @@ Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 	}
 
 	switch (type) {
-		case Constants.CSS_TYPE__EMPTY:
-			this.cells[x][y] = Constants.TYPE_EMPTY;
+		case CONST.CSS_TYPE_EMPTY:
+			this.cells[x][y] = CONST.TYPE_EMPTY;
 			break;
-		case Constants.CSS_TYPE__SHIP:
-			this.cells[x][y] = Constants.TYPE_SHIP;
+		case CONST.CSS_TYPE_SHIP:
+			this.cells[x][y] = CONST.TYPE_SHIP;
 			break;
-		case Constants.CSS_TYPE__MISS:
-			this.cells[x][y] = Constants.TYPE_MISS;
+		case CONST.CSS_TYPE_MISS:
+			this.cells[x][y] = CONST.TYPE_MISS;
 			break;
-		case Constants.CSS_TYPE__HIT:
-			this.cells[x][y] = Constants.TYPE_HIT;
+		case CONST.CSS_TYPE_HIT:
+			this.cells[x][y] = CONST.TYPE_HIT;
 			break;
-		case Constants.CSS_TYPE__SUNK:
-			this.cells[x][y] = Constants.TYPE_SUNK;
+		case CONST.CSS_TYPE_SUNK:
+			this.cells[x][y] = CONST.TYPE_SUNK;
 			break;
 		default:
-			this.cells[x][y] = Constants.TYPE_EMPTY;
+			this.cells[x][y] = CONST.TYPE_EMPTY;
 			break;
 	}
 	var classes = ['grid-cell', 'grid-cell-' + x + '-' + y, 'grid-' + type];
@@ -427,26 +426,26 @@ Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 // Checks to see if a cell contains an undamaged ship
 // Returns boolean
 Grid.prototype.containsUndamagedShip = function(x, y) {
-	return this.cells[x][y] === Constants.TYPE_SHIP;
+	return this.cells[x][y] === CONST.TYPE_SHIP;
 };
 // Checks to see if the shot was missed. This is equivalent
 // to checking if a cell contains a cannonball
 // Returns boolean
 Grid.prototype.containsCannonball = function(x, y) {
-	return this.cells[x][y] === Constants.TYPE_MISS;
+	return this.cells[x][y] === CONST.TYPE_MISS;
 };
 // Checks to see if a cell contains a damaged ship,
 // either hit or sunk.
 // Returns boolean
 Grid.prototype.containsDamagedShip = function(x, y) {
-	return this.cells[x][y] === Constants.TYPE_HIT || this.cells[x][y] === Constants.TYPE_SUNK;
+	return this.cells[x][y] === CONST.TYPE_HIT || this.cells[x][y] === CONST.TYPE_SUNK;
 };
 
 // Fleet object
 // This object is used to keep track of a player's portfolio of ships
 // Constructor
 function Fleet(playerGrid, player) {
-	this.numShips = Constants.AVAILABLE_SHIPS.length;
+	this.numShips = CONST.AVAILABLE_SHIPS.length;
 	this.playerGrid = playerGrid;
 	this.player = player;
 	this.fleetRoster = [];
@@ -456,8 +455,8 @@ function Fleet(playerGrid, player) {
 Fleet.prototype.populate = function() {
 	for (var i = 0; i < this.numShips; i++) {
 		// loop over the ship types when numShips > Constants.AVAILABLE_SHIPS.length
-		var j = i % Constants.AVAILABLE_SHIPS.length;
-		this.fleetRoster.push(new Ship(Constants.AVAILABLE_SHIPS[j], this.playerGrid, this.player));
+		var j = i % CONST.AVAILABLE_SHIPS.length;
+		this.fleetRoster.push(new Ship(CONST.AVAILABLE_SHIPS[j], this.playerGrid, this.player));
 	}
 };
 // Places the ship and returns whether or not the placement was successful
@@ -557,19 +556,19 @@ function Ship(type, playerGrid, player) {
 	this.player = player;
 
 	switch (this.type) {
-		case Constants.AVAILABLE_SHIPS[0]:
+		case CONST.AVAILABLE_SHIPS[0]:
 			this.shipLength = 5;
 			break;
-		case Constants.AVAILABLE_SHIPS[1]:
+		case CONST.AVAILABLE_SHIPS[1]:
 			this.shipLength = 4;
 			break;
-		case Constants.AVAILABLE_SHIPS[2]:
+		case CONST.AVAILABLE_SHIPS[2]:
 			this.shipLength = 3;
 			break;
-		case Constants.AVAILABLE_SHIPS[3]:
+		case CONST.AVAILABLE_SHIPS[3]:
 			this.shipLength = 3;
 			break;
-		case Constants.AVAILABLE_SHIPS[4]:
+		case CONST.AVAILABLE_SHIPS[4]:
 			this.shipLength = 2;
 			break;
 		default:
@@ -587,15 +586,15 @@ Ship.prototype.isLegal = function(x, y, direction) {
 		// ...then check to make sure it doesn't collide with another ship
 		for (var i = 0; i < this.shipLength; i++) {
 			if (direction === Ship.DIRECTION_VERTICAL) {
-				if (this.playerGrid.cells[x + i][y] === Constants.TYPE_SHIP ||
-					this.playerGrid.cells[x + i][y] === Constants.TYPE_MISS ||
-					this.playerGrid.cells[x + i][y] === Constants.TYPE_SUNK) {
+				if (this.playerGrid.cells[x + i][y] === CONST.TYPE_SHIP ||
+					this.playerGrid.cells[x + i][y] === CONST.TYPE_MISS ||
+					this.playerGrid.cells[x + i][y] === CONST.TYPE_SUNK) {
 					return false;
 				}
 			} else {
-				if (this.playerGrid.cells[x][y + i] === Constants.TYPE_SHIP ||
-					this.playerGrid.cells[x][y + i] === Constants.TYPE_MISS ||
-					this.playerGrid.cells[x][y + i] === Constants.TYPE_SUNK) {
+				if (this.playerGrid.cells[x][y + i] === CONST.TYPE_SHIP ||
+					this.playerGrid.cells[x][y + i] === CONST.TYPE_MISS ||
+					this.playerGrid.cells[x][y + i] === CONST.TYPE_SUNK) {
 					return false;
 				}
 			}
@@ -675,9 +674,9 @@ Ship.prototype.create = function(x, y, direction, virtual) {
 	if (!virtual) {
 		for (var i = 0; i < this.shipLength; i++) {
 			if (this.direction === Ship.DIRECTION_VERTICAL) {
-				this.playerGrid.cells[x + i][y] = Constants.TYPE_SHIP;
+				this.playerGrid.cells[x + i][y] = CONST.TYPE_SHIP;
 			} else {
-				this.playerGrid.cells[x][y + i] = Constants.TYPE_SHIP;
+				this.playerGrid.cells[x][y + i] = CONST.TYPE_SHIP;
 			}
 		}
 	}
@@ -688,14 +687,13 @@ Ship.prototype.create = function(x, y, direction, virtual) {
 Ship.DIRECTION_VERTICAL = 0;
 Ship.DIRECTION_HORIZONTAL = 1;
 
-// TODO: Two global helper functions for adding and removing classes
-
 // Tutorial Object
 // Constructor
 function Tutorial() {
 	this.currentStep = 0;
 	this.showTutorial = true;
 }
+// Advances the tutorial to the next step
 Tutorial.prototype.nextStep = function() {
 	var humanGrid = document.querySelector('.human-player');
 	var computerGrid = document.querySelector('.computer-player');
@@ -731,14 +729,13 @@ Tutorial.prototype.nextStep = function() {
 	}
 };
 
-
 // AI Object
 // Optimal battleship-playing AI
 // Constructor
 function AI(gameObject) {
 	this.gameObject = gameObject;
 	this.virtualGrid = new Grid(Game.size);
-	this.virtualFleet = new Fleet(this.virtualGrid, Constants.VIRTUAL_PLAYER);
+	this.virtualFleet = new Fleet(this.virtualGrid, CONST.VIRTUAL_PLAYER);
 
 	this.probabilityGrid = [];
 	this.initializeProbabilities();
@@ -770,7 +767,7 @@ AI.prototype.shoot = function() {
 		}
 	}
 
-	var result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, Constants.HUMAN_PLAYER);
+	var result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, CONST.HUMAN_PLAYER);
 	
 	// If the game ends, the next lines need to be skipped.
 	if (Game.gameOver) {
@@ -781,7 +778,7 @@ AI.prototype.shoot = function() {
 	this.virtualGrid.cells[maxProbCoords.x][maxProbCoords.y] = result;
 
 	// If you hit a ship, check to make sure if you've sunk it.
-	if (result === Constants.TYPE_HIT) {
+	if (result === CONST.TYPE_HIT) {
 		var humanShip = this.findHumanShip(maxProbCoords.x, maxProbCoords.y);
 		if (humanShip.isSunk()) {
 			// Remove any ships from the roster that have been sunk
@@ -795,7 +792,7 @@ AI.prototype.shoot = function() {
 			// Update the virtual grid with the sunk ship's cells
 			var shipCells = humanShip.getAllShipCells();
 			for (var _i = 0; _i < shipCells.length; _i++) {
-				this.virtualGrid.cells[shipCells[_i].x][shipCells[_i].y] = Constants.TYPE_SUNK;
+				this.virtualGrid.cells[shipCells[_i].x][shipCells[_i].y] = CONST.TYPE_SUNK;
 			}
 		}
 	}
@@ -856,7 +853,7 @@ AI.prototype.updateProbabilities = function() {
 
 				// Set hit cells to probability zero so the AI doesn't
 				// target cells that are already hit
-				if (this.virtualGrid.cells[x][y] === Constants.TYPE_HIT) {
+				if (this.virtualGrid.cells[x][y] === CONST.TYPE_HIT) {
 					this.probabilityGrid[x][y] = 0;
 				}
 			}
@@ -877,7 +874,7 @@ AI.prototype.resetProbabilities = function() {
 // Returns boolean
 AI.prototype.passesThroughHitCell = function(shipCells) {
 	for (var i = 0; i < shipCells.length; i++) {
-		if (this.virtualGrid.cells[shipCells[i].x][shipCells[i].y] === Constants.TYPE_HIT) {
+		if (this.virtualGrid.cells[shipCells[i].x][shipCells[i].y] === CONST.TYPE_HIT) {
 			return true;
 		}
 	}
@@ -889,15 +886,13 @@ AI.prototype.passesThroughHitCell = function(shipCells) {
 AI.prototype.numHitCellsCovered = function(shipCells) {
 	var cells = 0;
 	for (var i = 0; i < shipCells.length; i++) {
-		if (this.virtualGrid.cells[shipCells[i].x][shipCells[i].y] === Constants.TYPE_HIT) {
+		if (this.virtualGrid.cells[shipCells[i].x][shipCells[i].y] === CONST.TYPE_HIT) {
 			cells++;
 		}
 	}
 	return cells;
 };
 
-
-var CONSTANTS = new Constants();
 // Global constant only initialized once
 // TODO: Turn this into localstorage
 var gameTutorial = new Tutorial();
