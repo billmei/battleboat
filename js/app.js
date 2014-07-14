@@ -6,10 +6,15 @@
 // Thanks to Nick Berry for the inspiration behind the AI
 // http://www.datagenetics.com/blog/december32011/
 
+// TODO: Reset player roster when the game ends
+// TODO: Disable zoom on mobile
+
 // TODO: Google Analytics to track win/loss rates against real human players
 // TODO: Use analytics to track average number of shots taken
 // TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0)
 // TODO: Log and display the user's win percentage. Store via localstorage
+// TODO: Use `Array.filter()` instead of for-loop checking each element
+// TODO: Change the `alert()`s to CSS transition for a win screen
 
 var AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 
@@ -35,7 +40,7 @@ Game.gameOver = false;
 // Placement variables
 Game.readyToPlay = false;
 Game.stillPlacing = false;
-Game.placeGrid = false;
+Game.placingOnGrid = false;
 // Used for generating temporary ships for calculating
 // the probability heatmap
 Game.VIRTUAL_PLAYER = 2;
@@ -104,12 +109,13 @@ Game.prototype.shootListener = function(e) {
 	var result = null;
 	if (Game.readyToPlay) {
 		// I couldn't figure out how to avoid referencing the global variable here
+		// TODO: Put all the listeners in a new controller object?
 		result = mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
 	}
 
 	if (result !== null && !Game.gameOver) {
 		// The AI shoots iff the player clicks on a cell that he/she hasn't
-		// already clicked on
+		// already clicked on yet
 		mainGame.robot.shoot();
 	} else {
 		Game.gameOver = false;
@@ -125,28 +131,71 @@ Game.prototype.rosterListener = function(e) {
 		Game.placeShipType = e.target.getAttribute('id');
 		document.getElementById(Game.placeShipType).setAttribute('class', 'placing');
 		Game.placeShipDirection = parseInt(document.getElementById('rotate-button').getAttribute('data-direction'), 10);
-		Game.placeGrid = true;
+		Game.placingOnGrid = true;
 	}
 };
 Game.prototype.placementListener = function(e) {
-	if (Game.placeGrid) {
+	if (Game.placingOnGrid) {
 		// Extract coordinates from event listener
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 		
 		// Don't screw up the direction if the user tries to place again.
-
 		var successful = mainGame.humanFleet.placeShip(x, y, Game.placeShipDirection, Game.placeShipType);
 		if (successful) {
 			// Done placing this ship
-			mainGame.donePlacing(Game.placeShipType);
+			mainGame.endPlacing(Game.placeShipType);
 			Game.stillPlacing = false;
-			Game.placeGrid = false;
-			if (mainGame.allShipsPlaced()) {
+			Game.placingOnGrid = false;
+			if (mainGame.areAllShipsPlaced()) {
 				document.getElementById('rotate-button').setAttribute('class', 'invisible');
-				document.getElementById('start-game').setAttribute('class', '');
+				document.getElementById('start-game').removeAttribute('class');
 			}
 		}
+	}
+};
+Game.prototype.placementMouseover = function(e) {
+	if (Game.placingOnGrid) {
+		var x = parseInt(e.target.getAttribute('data-x'), 10);
+		var y = parseInt(e.target.getAttribute('data-y'), 10);
+		var classes;
+		var fleetRoster = mainGame.humanFleet.fleetRoster;
+
+		for (var i = 0; i < fleetRoster.length; i++) {
+			var shipType = fleetRoster[i].type;
+
+			if (Game.placeShipType === shipType &&
+				fleetRoster[i].isLegal(x, y, Game.placeShipDirection)) {
+				// Virtual ship
+				fleetRoster[i].create(x, y, Game.placeShipDirection, true);
+				Game.placeShipCoords = fleetRoster[i].getAllShipCells();
+
+				for (var j = 0; j < Game.placeShipCoords.length; j++) {
+					var el = document.querySelector('.grid-cell-' + Game.placeShipCoords[j].x + '-' + Game.placeShipCoords[j].y);
+					classes = el.getAttribute('class');
+					// Check if the substring ' grid-ship' already exists to avoid adding it twice
+					if (classes.indexOf(' grid-ship') < 0) {
+						classes += ' grid-ship';
+						el.setAttribute('class', classes);
+					}
+				}
+			}
+		}
+	}
+};
+Game.prototype.placementMouseout = function(e) {
+	if (Game.placingOnGrid) {
+		for (var j = 0; j < Game.placeShipCoords.length; j++) {
+			var el = document.querySelector('.grid-cell-' + Game.placeShipCoords[j].x + '-' + Game.placeShipCoords[j].y);
+			classes = el.getAttribute('class');
+			// Check if the substring ' grid-ship' already exists to avoid adding it twice
+			if (classes.indexOf(' grid-ship') > -1) {
+				classes = classes.replace(' grid-ship', '');
+				el.setAttribute('class', classes);
+			}
+		}
+		// Wipe out the variable when you're done with it
+		Game.placeShipCoords = [];
 	}
 };
 Game.prototype.rotationToggle = function(e) {
@@ -164,16 +213,21 @@ Game.prototype.startGame = function(e) {
 	document.getElementById('sidebar-left').setAttribute('class', 'invisible');
 	Game.readyToPlay = true;
 };
-Game.prototype.donePlacing = function(shipType) {
+Game.prototype.endPlacing = function(shipType) {
 	document.getElementById(shipType).setAttribute('class', 'placed');
 };
-Game.prototype.allShipsPlaced = function() {
+// Checks whether or not all ships are done
+Game.prototype.areAllShipsPlaced = function() {
 	var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
 	for (var i = 0; i < playerRoster.length; i++) {
 		if (playerRoster[i].getAttribute('class') === null) {
 			return false;
 		}
 	}
+	// Reset temporary variables
+	Game.placeShipDirection = 0;
+	Game.placeShipType = '';
+	Game.placeShipCoords = [];
 	return true;
 };
 /**
@@ -189,7 +243,13 @@ Game.prototype.resetFogOfWar = function() {
 };
 // Resets CSS styling of the sidebar
 Game.prototype.resetRosterSidebar = function() {
-
+	var els = document.querySelector('.fleet-roster').querySelectorAll('li');
+	for (var i = 0; i < els.length; i++) {
+		els[i].removeAttribute('class');
+	}
+	document.getElementById('sidebar-left').removeAttribute('class');
+	document.getElementById('rotate-button').removeAttribute('class');
+	document.getElementById('start-game').setAttribute('class', 'invisible');
 };
 /**
  * Generates the HTML divs for the grid
@@ -227,8 +287,12 @@ Game.prototype.initialize = function() {
 	Game.gameOver = false;
 	Game.readyToPlay = false;
 	Game.stillPlacing = false;
-	Game.placeGrid = false;
+	Game.placingOnGrid = false;
+	Game.placeShipDirection = 0;
+	Game.placeShipType = '';
+	Game.placeShipCoords = [];
 
+	this.resetRosterSidebar();
 
 	// Add a click listener for the Grid.shoot() method for all cells
 	// Only add this listener to the computer's grid
@@ -247,6 +311,8 @@ Game.prototype.initialize = function() {
 	var humanCells = document.querySelector('.human-player').childNodes;
 	for (var k = 0; k < humanCells.length; k++) {
 		humanCells[k].addEventListener('click', this.placementListener, false);
+		humanCells[k].addEventListener('mouseover', this.placementMouseover, false);
+		humanCells[k].addEventListener('mouseout', this.placementMouseout, false);
 	}
 
 	document.getElementById('rotate-button').addEventListener('click', this.rotationToggle, false);
@@ -390,7 +456,7 @@ Fleet.prototype.populate = function() {
 		this.fleetRoster.push(new Ship(AVAILABLE_SHIPS[j], this.playerGrid, this.player));
 	}
 };
-// Returns whether or not the placement was successful
+// Places the ship and returns whether or not the placement was successful
 Fleet.prototype.placeShip = function(x, y, direction, shipType) {
 	var shipCoords;
 	for (var i = 0; i < this.fleetRoster.length; i++) {
