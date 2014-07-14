@@ -161,7 +161,7 @@ button {
 		border-radius: 2px;
 	}
 		.grid-cell:hover {
-			cursor: pointer; /* Fallback */
+			cursor: pointer; /* Fallback for IE */
 			background-color: #66A3D2;
 		}
 		.human-player .grid-cell:hover {
@@ -187,7 +187,7 @@ button {
 	}
 
 .highlight {
-
+	overflow: visible; /* Bugfix for IE */
 }
 	.highlight:before {
 		content: "\2193";
