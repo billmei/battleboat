@@ -286,6 +286,8 @@ Game.prototype.resetRosterSidebar = function() {
 
 	if (SHOW_TUTORIAL) {
 		document.getElementById('sidebar-left').setAttribute('class', 'highlight');
+	} else {
+		document.getElementById('sidebar-left').removeAttribute('class');
 	}
 	document.getElementById('rotate-button').removeAttribute('class');
 	document.getElementById('start-game').setAttribute('class', 'hidden');
@@ -848,8 +850,13 @@ AI.prototype.numHitCellsCovered = function(shipCells) {
 	return cells;
 };
 
+// Global constant only initialized once
+// TODO: Turn this into localstorage
+var SHOW_TUTORIAL = true;
+
 // Start the game
 var mainGame = new Game(10);
+
 })();
 
 // IndexOf workaround for IE browsers that don't support it
@@ -918,10 +925,6 @@ if (!Array.prototype.indexOf) {
 		return -1;
 	};
 }
-
-// Global variable only initialized once
-// TODO: Turn this into localstorage
-var SHOW_TUTORIAL = true;
 
 // Browser compatability workaround for transition end event names.
 // From modernizr: http://stackoverflow.com/a/9090128
