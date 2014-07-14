@@ -103,10 +103,9 @@ Game.prototype.shootListener = function(e) {
 		result = mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
 
 		// Remove the tutorial arrow
-		var gridEl = document.querySelector('.computer-player');
-		var classes = gridEl.getAttribute('class');
-		classes = classes.replace(' highlight', '');
-		gridEl.setAttribute('class', classes);
+		if (gameTutorial.showTutorial) {
+			gameTutorial.nextStep();
+		}
 	}
 
 	if (result !== null && !Game.gameOver) {
@@ -126,11 +125,8 @@ Game.prototype.rosterListener = function(e) {
 		Game.stillPlacing = true;
 
 		// Move the highlight to the next step
-		if (SHOW_TUTORIAL) {
-			document.getElementById('sidebar-left').removeAttribute('class');
-			var gridEl = document.querySelector('.human-player');
-			gridEl.setAttribute('class', gridEl.getAttribute('class') + ' highlight');
-			SHOW_TUTORIAL = false;
+		if (gameTutorial.currentStep === 1) {
+			gameTutorial.nextStep();
 		}
 		
 		Game.placeShipType = e.target.getAttribute('id');
@@ -154,10 +150,9 @@ Game.prototype.placementListener = function(e) {
 			mainGame.endPlacing(Game.placeShipType);
 
 			// Remove the helper arrow
-			var gridEl = document.querySelector('.human-player');
-			var classes = gridEl.getAttribute('class');
-			classes = classes.replace(' highlight', '');
-			gridEl.setAttribute('class', classes);
+			if (gameTutorial.currentStep === 2) {
+				gameTutorial.nextStep();
+			}
 
 			Game.stillPlacing = false;
 			Game.placingOnGrid = false;
@@ -165,7 +160,11 @@ Game.prototype.placementListener = function(e) {
 				var el = document.getElementById('rotate-button');
 				el.addEventListener(transitionEndEventName(),(function(){
 					el.setAttribute('class', 'hidden');
-					document.getElementById('start-game').setAttribute('class', 'highlight');
+					if (gameTutorial.showTutorial) {
+						document.getElementById('start-game').setAttribute('class', 'highlight');
+					} else {
+						document.getElementById('start-game').removeAttribute('class');	
+					}
 				}),false);
 				el.setAttribute('class', 'invisible');
 			}
@@ -240,8 +239,9 @@ Game.prototype.startGame = function(e) {
 	Game.readyToPlay = true;
 
 	// Advanced the tutorial step
-	var gridEl = document.querySelector('.computer-player');
-	gridEl.setAttribute('class', gridEl.getAttribute('class') + ' highlight');
+	if (gameTutorial.currentStep === 3) {
+		gameTutorial.nextStep();
+	}
 
 	el.removeEventListener(transitionEndEventName(),fn,false);
 };
@@ -284,8 +284,8 @@ Game.prototype.resetRosterSidebar = function() {
 		els[i].removeAttribute('class');
 	}
 
-	if (SHOW_TUTORIAL) {
-		document.getElementById('sidebar-left').setAttribute('class', 'highlight');
+	if (gameTutorial.showTutorial) {
+		gameTutorial.nextStep();
 	} else {
 		document.getElementById('sidebar-left').removeAttribute('class');
 	}
@@ -686,6 +686,50 @@ Ship.prototype.create = function(x, y, direction, virtual) {
 Ship.DIRECTION_VERTICAL = 0;
 Ship.DIRECTION_HORIZONTAL = 1;
 
+// TODO: Two global helper functions for adding and removing classes
+
+// Tutorial Object
+// Constructor
+function Tutorial() {
+	this.currentStep = 0;
+	this.showTutorial = true;
+}
+Tutorial.prototype.nextStep = function() {
+	var humanGrid = document.querySelector('.human-player');
+	var computerGrid = document.querySelector('.computer-player');
+	switch (this.currentStep) {
+		case 0:
+			document.getElementById('sidebar-left').setAttribute('class', 'highlight');
+			this.currentStep++;
+			break;
+		case 1:
+			document.getElementById('sidebar-left').removeAttribute('class');
+			humanGrid.setAttribute('class', humanGrid.getAttribute('class') + ' highlight');
+			this.currentStep++;
+			break;
+		case 2:
+			var humanClasses = humanGrid.getAttribute('class');
+			humanClasses = humanClasses.replace(' highlight', '');
+			humanGrid.setAttribute('class', humanClasses);
+			this.currentStep++;
+			break;
+		case 3:
+			computerGrid.setAttribute('class', computerGrid.getAttribute('class') + ' highlight');
+			this.currentStep++;
+			break;
+		case 4:
+			var computerClasses = computerGrid.getAttribute('class');
+			computerClasses = computerClasses.replace(' highlight', '');
+			computerGrid.setAttribute('class', computerClasses);
+			this.currentStep = NaN;
+			this.showTutorial = false;
+			break;
+		default:
+			break;
+	}
+};
+
+
 // AI Object
 // Optimal battleship-playing AI
 // Constructor
@@ -852,7 +896,7 @@ AI.prototype.numHitCellsCovered = function(shipCells) {
 
 // Global constant only initialized once
 // TODO: Turn this into localstorage
-var SHOW_TUTORIAL = true;
+var gameTutorial = new Tutorial();
 
 // Start the game
 var mainGame = new Game(10);
