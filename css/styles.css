@@ -39,6 +39,16 @@ button {
 	button:active {
 		background-color: #99C2E1;
 	}
+	#start-game {
+		color: #FFFFFF;
+		background-color: #FF9200;
+	}
+		#start-game:hover {
+			background-color: #FFB655;
+		}
+		#start-game:active {
+			background-color: #FFCE8E;
+		}
 
 .tagline {
 	margin-bottom: 3em;
