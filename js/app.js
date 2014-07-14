@@ -6,9 +6,6 @@
 // Thanks to Nick Berry for the inspiration behind the AI
 // http://www.datagenetics.com/blog/december32011/
 
-// TODO: Disable zoom on mobile
-// TODO: Go through every function and update the documentation
-
 // TODO: Google Analytics to track win/loss rates against real human players
 // TODO: Use analytics to track average number of shots taken
 // TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0)
@@ -93,7 +90,6 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
 		this.checkIfWon();
 		return Grid.TYPE_MISS;
 	}
-
 };
 // Creates click event listeners on each one of the 100 grid cells
 Game.prototype.shootListener = function(e) {
@@ -105,6 +101,12 @@ Game.prototype.shootListener = function(e) {
 		// I couldn't figure out how to avoid referencing the global variable here
 		// TODO: Put all the listeners in a new controller object?
 		result = mainGame.shoot(x, y, Game.COMPUTER_PLAYER);
+
+		// Remove the tutorial arrow
+		var gridEl = document.querySelector('.computer-player');
+		var classes = gridEl.getAttribute('class');
+		classes = classes.replace(' highlight', '');
+		gridEl.setAttribute('class', classes);
 	}
 
 	if (result !== null && !Game.gameOver) {
@@ -122,6 +124,15 @@ Game.prototype.rosterListener = function(e) {
 	// on before moving on to the next one
 	if (!Game.stillPlacing) {
 		Game.stillPlacing = true;
+
+		// Move the highlight to the next step
+		if (SHOW_TUTORIAL) {
+			document.getElementById('sidebar-left').removeAttribute('class');
+			var gridEl = document.querySelector('.human-player');
+			gridEl.setAttribute('class', gridEl.getAttribute('class') + ' highlight');
+			SHOW_TUTORIAL = false;
+		}
+		
 		Game.placeShipType = e.target.getAttribute('id');
 		document.getElementById(Game.placeShipType).setAttribute('class', 'placing');
 		Game.placeShipDirection = parseInt(document.getElementById('rotate-button').getAttribute('data-direction'), 10);
@@ -141,13 +152,20 @@ Game.prototype.placementListener = function(e) {
 		if (successful) {
 			// Done placing this ship
 			mainGame.endPlacing(Game.placeShipType);
+
+			// Remove the helper arrow
+			var gridEl = document.querySelector('.human-player');
+			var classes = gridEl.getAttribute('class');
+			classes = classes.replace(' highlight', '');
+			gridEl.setAttribute('class', classes);
+
 			Game.stillPlacing = false;
 			Game.placingOnGrid = false;
 			if (mainGame.areAllShipsPlaced()) {
 				var el = document.getElementById('rotate-button');
 				el.addEventListener(transitionEndEventName(),(function(){
 					el.setAttribute('class', 'hidden');
-					document.getElementById('start-game').setAttribute('class', 'glow');
+					document.getElementById('start-game').setAttribute('class', 'highlight');
 				}),false);
 				el.setAttribute('class', 'invisible');
 			}
@@ -220,6 +238,11 @@ Game.prototype.startGame = function(e) {
 	el.addEventListener(transitionEndEventName(),fn,false);
 	el.setAttribute('class', 'invisible');
 	Game.readyToPlay = true;
+
+	// Advanced the tutorial step
+	var gridEl = document.querySelector('.computer-player');
+	gridEl.setAttribute('class', gridEl.getAttribute('class') + ' highlight');
+
 	el.removeEventListener(transitionEndEventName(),fn,false);
 };
 // Ends placing the current ship
@@ -260,7 +283,10 @@ Game.prototype.resetRosterSidebar = function() {
 	for (var i = 0; i < els.length; i++) {
 		els[i].removeAttribute('class');
 	}
-	document.getElementById('sidebar-left').removeAttribute('class');
+
+	if (SHOW_TUTORIAL) {
+		document.getElementById('sidebar-left').setAttribute('class', 'highlight');
+	}
 	document.getElementById('rotate-button').removeAttribute('class');
 	document.getElementById('start-game').setAttribute('class', 'hidden');
 };
@@ -892,6 +918,10 @@ if (!Array.prototype.indexOf) {
 		return -1;
 	};
 }
+
+// Global variable only initialized once
+// TODO: Turn this into localstorage
+var SHOW_TUTORIAL = true;
 
 // Browser compatability workaround for transition end event names.
 // From modernizr: http://stackoverflow.com/a/9090128

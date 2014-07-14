@@ -40,6 +40,7 @@ button {
 		background-color: #99C2E1;
 	}
 	#start-game {
+		position: relative;
 		color: #FFFFFF;
 		background-color: #FF9200;
 	}
@@ -66,7 +67,7 @@ button {
 		margin: 0;
 		background-color: #EEEEEE;
 		position: absolute;
-		top: 21.8em;
+		top: 12.9em;
 		left: -200px;
 		-webkit-border-radius: 5px;
 		-moz-border-radius: 5px;
@@ -76,11 +77,6 @@ button {
 			margin: 0 0 1em 0;
 			text-align: center;
 		}
-	.container ol {
-		display: inline-block;
-		text-align: left;
-		margin-top: 0;
-	}
 
 .fleet-roster {
 	position: relative;
@@ -122,19 +118,6 @@ button {
 		display: none;
 	}
 
-/*@-webkit-keyframes glow {
-	
-}
-@-moz-keyframes glow {
-
-}
-@-o-keyframes glow {
-
-}
-@keyframes glow {
-
-}*/
-
 .grid-container {
 	width: 430px;
 	display: inline-block;
@@ -145,6 +128,7 @@ button {
 }
 
 .grid {
+	position: relative;
 	vertical-align: top;
 	padding: 5px;
 	height: 420px;
@@ -202,10 +186,25 @@ button {
 		background-color: #222222;
 	}
 
-/* TODO: Animated glow to attract attention to each step */
-.glow {
-	
+.highlight {
+
 }
+	.highlight:before {
+		content: "\2193";
+		font-weight: bold;
+		font-size: 75px;
+		color: #FF9200;
+		text-shadow: 0 0 5px #FF9200;
+		position: absolute;
+		width: 100px;
+		height: 100px;
+		top: -100px;
+		left: 50%;
+		margin-left: -50px;
+		-webkit-animation: highlight 1.5s infinite;
+		-o-animation: highlight 1.5s infinite;
+		animation: highlight 1.5s infinite;
+	}
 
 @media(max-width: 1300px) {
 	.container {
@@ -213,5 +212,66 @@ button {
 	}
 	.grid-container:last-child {
 		margin-left: 0;
+	}
+}
+
+
+@-webkit-keyframes highlight {
+	0% {
+		-webkit-transform: translateY(0);
+		transform: translateY(0);
+	}
+	50% {
+		-webkit-transform: translateY(-20px);
+		transform: translateY(-20px);
+	}
+	100% {
+		-webkit-transform: translateY(0);
+		transform: translateY(0);
+	}
+}
+@-moz-keyframes highlight {
+	0% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-20px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+@-o-keyframes highlight {
+	0% {
+		-o-transform: translateY(0);
+		transform: translateY(0);
+	}
+	50% {
+		-o-transform: translateY(-20px);
+		transform: translateY(-20px);
+	}
+	100% {
+		-o-transform: translateY(0);
+		transform: translateY(0);
+	}
+}
+@keyframes highlight {
+	0% {
+		-webkit-transform: translateY(0);
+		-ms-transform: translateY(0);
+		-o-transform: translateY(0);
+		transform: translateY(0);
+	}
+	50% {
+		-webkit-transform: translateY(-20px);
+		-ms-transform: translateY(-20px);
+		-o-transform: translateY(-20px);
+		transform: translateY(-20px);
+	}
+	100% {
+		-webkit-transform: translateY(0);
+		-ms-transform: translateY(0);
+		-o-transform: translateY(0);
+		transform: translateY(0);
 	}
 }
