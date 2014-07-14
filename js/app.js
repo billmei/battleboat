@@ -123,9 +123,9 @@ Game.prototype.shootListener = function(e) {
 };
 // Creates click event listeners on each of the ships in the roster
 Game.prototype.rosterListener = function(e) {
-// TODO: Allow the user to change their mind for the ship they want
-// to click instead of forcing to place the ship they've clicked
-// on before moving on to the next one
+	// TODO: Allow the user to change their mind for the ship they want
+	// to click instead of forcing to place the ship they've clicked
+	// on before moving on to the next one
 	if (!Game.stillPlacing) {
 		Game.stillPlacing = true;
 		Game.placeShipType = e.target.getAttribute('id');
@@ -148,7 +148,11 @@ Game.prototype.placementListener = function(e) {
 			Game.stillPlacing = false;
 			Game.placingOnGrid = false;
 			if (mainGame.areAllShipsPlaced()) {
-				document.getElementById('rotate-button').setAttribute('class', 'invisible');
+				var el = document.getElementById('rotate-button');
+				el.addEventListener('transitionend',
+					el.setAttribute('class', 'hidden'),
+					false);
+				el.setAttribute('class', 'invisible');
 				document.getElementById('start-game').removeAttribute('class');
 			}
 		}
@@ -190,15 +194,17 @@ Game.prototype.placementMouseout = function(e) {
 			classes = el.getAttribute('class');
 			// Check if the substring ' grid-ship' already exists to avoid adding it twice
 			if (classes.indexOf(' grid-ship') > -1) {
+				console.log(Game.placeShipType);
+				console.log("(x, y) == (" + Game.placeShipCoords[j].x + ", " + Game.placeShipCoords[j].y + ")");
 				classes = classes.replace(' grid-ship', '');
+				console.log('newclasses == ' + classes);
+				console.log('el === ' + el);
 				el.setAttribute('class', classes);
 			}
 		}
-		// Wipe out the variable when you're done with it
-		Game.placeShipCoords = [];
 	}
 };
-Game.prototype.rotationToggle = function(e) {
+Game.prototype.toggleRotation = function(e) {
 	// Toggle rotation direction
 	var direction = parseInt(e.target.getAttribute('data-direction'), 10);
 	if (direction === Ship.DIRECTION_VERTICAL) {
@@ -210,11 +216,19 @@ Game.prototype.rotationToggle = function(e) {
 	}
 };
 Game.prototype.startGame = function(e) {
-	document.getElementById('sidebar-left').setAttribute('class', 'invisible');
+	var el = document.getElementById('sidebar-left');
+	el.addEventListener('transitionend',
+		el.setAttribute('class', 'hidden'),
+		false);
+	el.setAttribute('class', 'invisible');
 	Game.readyToPlay = true;
 };
 Game.prototype.endPlacing = function(shipType) {
 	document.getElementById(shipType).setAttribute('class', 'placed');
+	// Wipe out the variable when you're done with it
+	Game.placeShipDirection = null;
+	Game.placeShipType = '';
+	Game.placeShipCoords = [];
 };
 // Checks whether or not all ships are done
 Game.prototype.areAllShipsPlaced = function() {
@@ -249,7 +263,7 @@ Game.prototype.resetRosterSidebar = function() {
 	}
 	document.getElementById('sidebar-left').removeAttribute('class');
 	document.getElementById('rotate-button').removeAttribute('class');
-	document.getElementById('start-game').setAttribute('class', 'invisible');
+	document.getElementById('start-game').setAttribute('class', 'hidden');
 };
 /**
  * Generates the HTML divs for the grid
@@ -315,7 +329,7 @@ Game.prototype.initialize = function() {
 		humanCells[k].addEventListener('mouseout', this.placementMouseout, false);
 	}
 
-	document.getElementById('rotate-button').addEventListener('click', this.rotationToggle, false);
+	document.getElementById('rotate-button').addEventListener('click', this.toggleRotation, false);
 	document.getElementById('start-game').addEventListener('click', this.startGame, false);
 
 	this.computerFleet.placeShipsRandomly();

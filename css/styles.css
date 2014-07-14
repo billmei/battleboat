@@ -22,6 +22,24 @@ div {
 	margin: 0;
 }
 
+button {
+	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+	font-size: 1.2em;
+	color: #EEEEEE;
+	background-color: #25567B;
+	border: none;
+	margin-top: 1em;
+	padding: 10px;
+	border-radius: 5px;
+}
+	button:hover {
+		cursor: pointer;
+		background-color: #66A3D2;
+	}
+	button:active {
+		background-color: #99C2E1;
+	}
+
 .tagline {
 	margin-bottom: 3em;
 }
@@ -38,7 +56,6 @@ div {
 		margin: 0;
 		background-color: #EEEEEE;
 		position: absolute;
-		/*text-align: left;*/
 		top: 21.8em;
 		left: -200px;
 		-webkit-border-radius: 5px;
@@ -89,6 +106,9 @@ div {
 		-webkit-transition: all 0.5s ease-in;
 		-o-transition: all 0.5s ease-in;
 		transition: all 0.5s ease-in;
+	}
+	.hidden {
+		display: none;
 	}
 
 .grid-container {
@@ -157,6 +177,11 @@ div {
 	.grid-sunk, .grid-sunk:hover, .human-player .grid-sunk:hover {
 		background-color: #222222;
 	}
+
+/* TODO: Animated glow to attract attention to each step */
+.glow {
+	
+}
 
 @media(max-width: 1300px) {
 	.container {
