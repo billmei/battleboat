@@ -149,11 +149,11 @@ Game.prototype.placementListener = function(e) {
 			Game.placingOnGrid = false;
 			if (mainGame.areAllShipsPlaced()) {
 				var el = document.getElementById('rotate-button');
-				el.addEventListener('transitionend',
-					el.setAttribute('class', 'hidden'),
-					false);
+				el.addEventListener(transitionEndEventName(),(function(){
+					el.setAttribute('class', 'hidden');
+					document.getElementById('start-game').removeAttribute('class');
+				}),false);
 				el.setAttribute('class', 'invisible');
-				document.getElementById('start-game').removeAttribute('class');
 			}
 		}
 	}
@@ -217,9 +217,9 @@ Game.prototype.toggleRotation = function(e) {
 };
 Game.prototype.startGame = function(e) {
 	var el = document.getElementById('sidebar-left');
-	el.addEventListener('transitionend',
-		el.setAttribute('class', 'hidden'),
-		false);
+	el.addEventListener(transitionEndEventName(),(function(){
+		el.setAttribute('class', 'hidden');
+	}),false);
 	el.setAttribute('class', 'invisible');
 	Game.readyToPlay = true;
 };
@@ -959,6 +959,26 @@ if (!Array.prototype.indexOf) {
     }
     return -1;
   };
+}
+
+function transitionEndEventName() {
+    var i,
+        undefined,
+        el = document.createElement('div'),
+        transitions = {
+            'transition':'transitionend',
+            'OTransition':'otransitionend',  // oTransitionEnd in very old Opera
+            'MozTransition':'transitionend',
+            'WebkitTransition':'webkitTransitionEnd'
+        };
+
+    for (i in transitions) {
+        if (transitions.hasOwnProperty(i) && el.style[i] !== undefined) {
+            return transitions[i];
+        }
+    }
+
+    //TODO: throw 'TransitionEnd event is not supported in this browser'; 
 }
 
 // console.log("Hi! Thanks for checking out this game. Please be nice and don't hack the ajax requests, I'm using Google Analytics to collect info about the AI's win/loss percentage in order to improve the bot, so if you do look around, I kindly ask that you don't give it bad data. Thanks.");

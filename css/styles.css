@@ -28,7 +28,7 @@ button {
 	color: #EEEEEE;
 	background-color: #25567B;
 	border: none;
-	margin-top: 1em;
+	margin: 1em auto 0 auto;
 	padding: 10px;
 	border-radius: 5px;
 }
@@ -73,15 +73,16 @@ button {
 	}
 
 .fleet-roster {
+	position: relative;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
-.fleet-roster, .fleet-roster button {
+.fleet-roster, button {
 	opacity: 1;
-	-webkit-transition: all 0.5s ease-out;
-	-o-transition: all 0.5s ease-out;
-	transition: all 0.5s ease-out;
+	-webkit-transition: opacity 0.5s ease-out;
+	-o-transition: opacity 0.5s ease-out;
+	transition: opacity 0.5s ease-out;
 }
 	.fleet-roster li {
 		margin: 0.5em 0;
@@ -103,13 +104,26 @@ button {
 	}
 	.invisible {
 		opacity: 0;
-		-webkit-transition: all 0.5s ease-in;
-		-o-transition: all 0.5s ease-in;
-		transition: all 0.5s ease-in;
+		-webkit-transition: opacity 0.5s ease-in;
+		-o-transition: opacity 0.5s ease-in;
+		transition: opacity 0.5s ease-in;
 	}
 	.hidden {
 		display: none;
 	}
+
+/*@-webkit-keyframes glow {
+	
+}
+@-moz-keyframes glow {
+
+}
+@-o-keyframes glow {
+
+}
+@keyframes glow {
+
+}*/
 
 .grid-container {
 	width: 430px;
