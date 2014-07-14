@@ -151,7 +151,7 @@ Game.prototype.placementListener = function(e) {
 				var el = document.getElementById('rotate-button');
 				el.addEventListener(transitionEndEventName(),(function(){
 					el.setAttribute('class', 'hidden');
-					document.getElementById('start-game').removeAttribute('class');
+					document.getElementById('start-game').setAttribute('class', 'glow');
 				}),false);
 				el.setAttribute('class', 'invisible');
 			}
@@ -897,88 +897,86 @@ var mainGame = new Game(10);
 // IndexOf workaround for IE browsers that don't support it
 // From MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
 if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function (searchElement, fromIndex) {
+	Array.prototype.indexOf = function (searchElement, fromIndex) {
 
-    var k;
+		var k;
 
-    // 1. Let O be the result of calling ToObject passing
-    //    the this value as the argument.
-    if (this === null || this === undefined) {
-      throw new TypeError('"this" is null or not defined');
-    }
+		// 1. Let O be the result of calling ToObject passing
+		//    the this value as the argument.
+		if (this === null || this === undefined) {
+			throw new TypeError('"this" is null or not defined');
+		}
 
-    var O = Object(this);
+		var O = Object(this);
 
-    // 2. Let lenValue be the result of calling the Get
-    //    internal method of O with the argument "length".
-    // 3. Let len be ToUint32(lenValue).
-    var len = O.length >>> 0;
+		// 2. Let lenValue be the result of calling the Get
+		//    internal method of O with the argument "length".
+		// 3. Let len be ToUint32(lenValue).
+		var len = O.length >>> 0;
 
-    // 4. If len is 0, return -1.
-    if (len === 0) {
-      return -1;
-    }
+		// 4. If len is 0, return -1.
+		if (len === 0) {
+			return -1;
+		}
 
-    // 5. If argument fromIndex was passed let n be
-    //    ToInteger(fromIndex); else let n be 0.
-    var n = +fromIndex || 0;
+		// 5. If argument fromIndex was passed let n be
+		//    ToInteger(fromIndex); else let n be 0.
+		var n = +fromIndex || 0;
 
-    if (Math.abs(n) === Infinity) {
-      n = 0;
-    }
+		if (Math.abs(n) === Infinity) {
+			n = 0;
+		}
 
-    // 6. If n >= len, return -1.
-    if (n >= len) {
-      return -1;
-    }
+		// 6. If n >= len, return -1.
+		if (n >= len) {
+			return -1;
+		}
 
-    // 7. If n >= 0, then Let k be n.
-    // 8. Else, n<0, Let k be len - abs(n).
-    //    If k is less than 0, then let k be 0.
-    k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+		// 7. If n >= 0, then Let k be n.
+		// 8. Else, n<0, Let k be len - abs(n).
+		//    If k is less than 0, then let k be 0.
+		k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
 
-    // 9. Repeat, while k < len
-    while (k < len) {
-      var kValue;
-      // a. Let Pk be ToString(k).
-      //   This is implicit for LHS operands of the in operator
-      // b. Let kPresent be the result of calling the
-      //    HasProperty internal method of O with argument Pk.
-      //   This step can be combined with c
-      // c. If kPresent is true, then
-      //    i.  Let elementK be the result of calling the Get
-      //        internal method of O with the argument ToString(k).
-      //   ii.  Let same be the result of applying the
-      //        Strict Equality Comparison Algorithm to
-      //        searchElement and elementK.
-      //  iii.  If same is true, return k.
-      if (k in O && O[k] === searchElement) {
-        return k;
-      }
-      k++;
-    }
-    return -1;
-  };
+		// 9. Repeat, while k < len
+		while (k < len) {
+			var kValue;
+			// a. Let Pk be ToString(k).
+			//   This is implicit for LHS operands of the in operator
+			// b. Let kPresent be the result of calling the
+			//    HasProperty internal method of O with argument Pk.
+			//   This step can be combined with c
+			// c. If kPresent is true, then
+			//    i.  Let elementK be the result of calling the Get
+			//        internal method of O with the argument ToString(k).
+			//   ii.  Let same be the result of applying the
+			//        Strict Equality Comparison Algorithm to
+			//        searchElement and elementK.
+			//  iii.  If same is true, return k.
+			if (k in O && O[k] === searchElement) {
+				return k;
+			}
+			k++;
+		}
+		return -1;
+	};
 }
 
 function transitionEndEventName() {
-    var i,
-        undefined,
-        el = document.createElement('div'),
-        transitions = {
-            'transition':'transitionend',
-            'OTransition':'otransitionend',  // oTransitionEnd in very old Opera
-            'MozTransition':'transitionend',
-            'WebkitTransition':'webkitTransitionEnd'
-        };
+	var i,
+		undefined,
+		el = document.createElement('div'),
+		transitions = {
+			'transition':'transitionend',
+			'OTransition':'otransitionend',  // oTransitionEnd in very old Opera
+			'MozTransition':'transitionend',
+			'WebkitTransition':'webkitTransitionEnd'
+		};
 
-    for (i in transitions) {
-        if (transitions.hasOwnProperty(i) && el.style[i] !== undefined) {
-            return transitions[i];
-        }
-    }
-
-    //TODO: throw 'TransitionEnd event is not supported in this browser'; 
+	for (i in transitions) {
+		if (transitions.hasOwnProperty(i) && el.style[i] !== undefined) {
+			return transitions[i];
+		}
+	}
 }
 
 // console.log("Hi! Thanks for checking out this game. Please be nice and don't hack the ajax requests, I'm using Google Analytics to collect info about the AI's win/loss percentage in order to improve the bot, so if you do look around, I kindly ask that you don't give it bad data. Thanks.");
