@@ -194,11 +194,7 @@ Game.prototype.placementMouseout = function(e) {
 			classes = el.getAttribute('class');
 			// Check if the substring ' grid-ship' already exists to avoid adding it twice
 			if (classes.indexOf(' grid-ship') > -1) {
-				console.log(Game.placeShipType);
-				console.log("(x, y) == (" + Game.placeShipCoords[j].x + ", " + Game.placeShipCoords[j].y + ")");
 				classes = classes.replace(' grid-ship', '');
-				console.log('newclasses == ' + classes);
-				console.log('el === ' + el);
 				el.setAttribute('class', classes);
 			}
 		}
@@ -217,11 +213,11 @@ Game.prototype.toggleRotation = function(e) {
 };
 Game.prototype.startGame = function(e) {
 	var el = document.getElementById('sidebar-left');
-	el.addEventListener(transitionEndEventName(),(function(){
-		el.setAttribute('class', 'hidden');
-	}),false);
+	var fn = function() {el.setAttribute('class', 'hidden');};
+	el.addEventListener(transitionEndEventName(),fn,false);
 	el.setAttribute('class', 'invisible');
 	Game.readyToPlay = true;
+	el.removeEventListener(transitionEndEventName(),fn,false);
 };
 Game.prototype.endPlacing = function(shipType) {
 	document.getElementById(shipType).setAttribute('class', 'placed');
