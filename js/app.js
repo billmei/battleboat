@@ -292,7 +292,6 @@ Game.prototype.initialize = function() {
 
 	// Reset game variables
 	this.shotsTaken = 0;
-	Game.gameOver = false;
 	Game.readyToPlay = false;
 	Game.stillPlacing = false;
 	Game.placingOnGrid = false;
