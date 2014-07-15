@@ -36,6 +36,46 @@ CONST.TYPE_MISS = 2; // 2 = water with a cannonball in it (missed shot)
 CONST.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
 CONST.TYPE_SUNK = 4; // 4 = sunk ship
 
+// Game Statistics
+function Stats(){
+	this.shotsTaken = 0;
+	this.shotsHit = 0;
+	if (localStorage.getItem('gamesPlayed')) {
+		this.gamesPlayed = localStorage.getItem('gamesPlayed');
+	} else {
+		this.gamesPlayed = 0;
+	}
+	if (localStorage.getItem('gamesWon')) {
+		this.gamesWon = localStorage.getItem('gamesWon');
+	} else {
+		this.gamesWon = 0;
+	}
+}
+// Increments the shots
+Stats.prototype.incrementShots = function() {
+	this.shotsTaken++;
+};
+Stats.prototype.hitShot = function() {
+	this.shotsHit++;
+};
+Stats.prototype.wonGame = function() {
+	this.gamesPlayed++;
+	this.gamesWon++;
+};
+Stats.prototype.lostGame = function() {
+	this.gamesPlayed++;
+};
+// Saves the game statistics to localstorage
+Stats.prototype.saveStats = function() {
+	var totalShots = localStorage.getItem('totalShots');
+	totalShots += this.shotsTaken;
+	var totalHits = localStorage.getItem('totalHits');
+	totalHits += this.shotsHit;
+	localStorage.setItem('totalShots', totalShots);
+	localStorage.setItem('gamesPlayed', this.gamesPlayed);
+	localStorage.setItem('gamesWon', this.gamesWon);
+};
+
 // Game manager object
 // Constructor
 function Game(size) {
@@ -50,21 +90,20 @@ Game.gameOver = false;
 Game.readyToPlay = false;
 Game.stillPlacing = false;
 Game.placingOnGrid = false;
-
-// Increments the shots
-Game.prototype.incrementShots = function() {
-	this.shotsTaken++;
-};
 // Checks if the game is won, and if it is, re-initializes the game
 Game.prototype.checkIfWon = function() {
 	if (this.computerFleet.allShipsSunk()) {
 		alert('Congratulations, you win!');
 		Game.gameOver = true;
+		Game.stats.wonGame();
+		Game.stats.saveStats();
 		this.resetFogOfWar();
 		this.initialize();
 	} else if (this.humanFleet.allShipsSunk()) {
 		alert('Yarr! The computer sank all your ships. Try again.');
 		Game.gameOver = true;
+		Game.stats.lostGame();
+		Game.stats.saveStats();
 		this.resetFogOfWar();
 		this.initialize();
 	}
@@ -95,12 +134,10 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
 		// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
 		// because it overrides the CSS class to 'sunk' if we find that the ship was sunk
 		targetFleet.findShipByCoords(x, y).incrementDamage(); // increase the damage
-		this.incrementShots();
 		this.checkIfWon();
 		return CONST.TYPE_HIT;
 	} else {
 		targetGrid.updateCell(x, y, 'miss', targetPlayer);
-		this.incrementShots();
 		this.checkIfWon();
 		return CONST.TYPE_MISS;
 	}
@@ -122,6 +159,10 @@ Game.prototype.shootListener = function(e) {
 	}
 
 	if (result !== null && !Game.gameOver) {
+		Game.stats.incrementShots();
+		if (result === CONST.TYPE_HIT) {
+			Game.stats.hitShot();
+		}
 		// The AI shoots iff the player clicks on a cell that he/she hasn't
 		// already clicked on yet
 		mainGame.robot.shoot();
@@ -330,6 +371,7 @@ Game.prototype.initialize = function() {
 	this.computerFleet = new Fleet(this.computerGrid, CONST.COMPUTER_PLAYER);
 
 	this.robot = new AI(this);
+	Game.stats = new Stats();
 
 	// Reset game variables
 	this.shotsTaken = 0;
