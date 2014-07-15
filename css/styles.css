@@ -61,19 +61,24 @@ button {
 	text-align: center;
 	margin: 20px auto 100px auto;
 }
-	#sidebar-left {
+	#sidebar-left, #sidebar-right {
 		width: 150px;
 		padding: 20px;
 		margin: 0;
 		background-color: #EEEEEE;
 		position: absolute;
 		top: 12.9em;
-		left: -200px;
 		-webkit-border-radius: 5px;
 		-moz-border-radius: 5px;
 		border-radius: 5px;
 	}
-		#sidebar-left h2 {
+	#sidebar-left {
+		left: -200px;
+	}
+	#sidebar-right {
+		right: -200px;
+	}
+		#sidebar-left h2, #sidebar-right h2 {
 			margin: 0 0 1em 0;
 			text-align: center;
 		}
