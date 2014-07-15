@@ -775,7 +775,11 @@ Ship.DIRECTION_HORIZONTAL = 1;
 // Constructor
 function Tutorial() {
 	this.currentStep = 0;
-	this.showTutorial = true;
+	if (localStorage.getItem('showTutorial')) {
+		this.showTutorial = (localStorage.getItem('showTutorial') === 'true');
+	} else {
+		this.showTutorial = true;
+	}
 }
 // Advances the tutorial to the next step
 Tutorial.prototype.nextStep = function() {
@@ -807,6 +811,7 @@ Tutorial.prototype.nextStep = function() {
 			computerGrid.setAttribute('class', computerClasses);
 			this.currentStep = NaN;
 			this.showTutorial = false;
+			localStorage.setItem('showTutorial', false);
 			break;
 		default:
 			break;
@@ -978,7 +983,6 @@ AI.prototype.numHitCellsCovered = function(shipCells) {
 };
 
 // Global constant only initialized once
-// TODO: Turn this into localstorage
 var gameTutorial = new Tutorial();
 
 // Start the game
