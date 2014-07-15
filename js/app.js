@@ -6,13 +6,12 @@
 // Thanks to Nick Berry for the inspiration behind the AI
 // http://www.datagenetics.com/blog/december32011/
 
-// TODO: Log and display the user's win percentage. Store via localstorage
-// TODO: Use analytics to track win/loss rates against real human players (use an ajax request to get uuid's)
-// TODO: Use analytics to track average number of shots taken
+// TODO: Use analytics to track stats against real human players (use an ajax request to get uuid's)
 // TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0) [Don't track the win/loss if the heatmap is turned on]
 // TODO: Use `Array.filter()` instead of for-loop checking each element
 // TODO: Change the `alert()`s to CSS transition for a win screen
 // TODO: Meta-game the user between playsessions
+// TODO: Smaller responsive breakpoint;
 
 // Global Constants
 function CONST() {}
@@ -40,18 +39,27 @@ CONST.TYPE_SUNK = 4; // 4 = sunk ship
 function Stats(){
 	this.shotsTaken = 0;
 	this.shotsHit = 0;
+	if (localStorage.getItem('totalShots')) {
+		this.totalShots = parseInt(localStorage.getItem('totalShots'));
+	} else {
+		this.totalShots = 0;
+	}
+	if (localStorage.getItem('totalHits')) {
+		this.totalHits = parseInt(localStorage.getItem('totalHits'));
+	} else {
+		this.totalHits = 0;
+	}
 	if (localStorage.getItem('gamesPlayed')) {
-		this.gamesPlayed = localStorage.getItem('gamesPlayed');
+		this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed'));
 	} else {
 		this.gamesPlayed = 0;
 	}
 	if (localStorage.getItem('gamesWon')) {
-		this.gamesWon = localStorage.getItem('gamesWon');
+		this.gamesWon = parseInt(localStorage.getItem('gamesWon'));
 	} else {
 		this.gamesWon = 0;
 	}
 }
-// Increments the shots
 Stats.prototype.incrementShots = function() {
 	this.shotsTaken++;
 };
@@ -66,14 +74,44 @@ Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
 };
 // Saves the game statistics to localstorage
-Stats.prototype.saveStats = function() {
-	var totalShots = localStorage.getItem('totalShots');
-	totalShots += this.shotsTaken;
-	var totalHits = localStorage.getItem('totalHits');
-	totalHits += this.shotsHit;
-	localStorage.setItem('totalShots', totalShots);
-	localStorage.setItem('gamesPlayed', this.gamesPlayed);
-	localStorage.setItem('gamesWon', this.gamesWon);
+Stats.prototype.syncStats = function() {
+	if(!this.skipCurrentGame) {
+		var totalShots = parseInt(localStorage.getItem('totalShots'));
+		totalShots += this.shotsTaken;
+		var totalHits = parseInt(localStorage.getItem('totalHits'));
+		totalHits += this.shotsHit;
+		localStorage.setItem('totalShots', totalShots);
+		localStorage.setItem('totalHits', totalHits);
+		localStorage.setItem('gamesPlayed', this.gamesPlayed);
+		localStorage.setItem('gamesWon', this.gamesWon);
+	} else {
+		this.skipCurrentGame = false;
+	}
+};
+// Updates the sidebar display with the current statistics
+Stats.prototype.updateStatsSidebar = function() {
+	var elWinPercent = document.getElementById('stats-wins');
+	var elAccuracy = document.getElementById('stats-accuracy');
+	elWinPercent.innerHTML = this.gamesWon + " of " + this.gamesPlayed || 0;
+	elAccuracy.innerHTML = Math.round((100 * this.totalHits / this.totalShots) || 0) + "%";
+};
+// Reset all game statistics to zero
+Stats.prototype.resetStats = function(e) {
+	// Skip tracking stats until the end of the current game or else
+	// the accuracy percentage will be wrong (since you are tracking
+	// hits that didn't start from the beginning of the game)
+	this.skipCurrentGame = true;
+	localStorage.setItem('totalShots', 0);
+	localStorage.setItem('totalHits', 0);
+	localStorage.setItem('gamesPlayed', 0);
+	localStorage.setItem('gamesWon', 0);
+	this.shotsTaken = 0;
+	this.shotsHit = 0;
+	this.totalShots = 0;
+	this.totalHits = 0;
+	this.gamesPlayed = 0;
+	this.gamesWon = 0;
+	Game.stats.updateStatsSidebar();
 };
 
 // Game manager object
@@ -96,14 +134,16 @@ Game.prototype.checkIfWon = function() {
 		alert('Congratulations, you win!');
 		Game.gameOver = true;
 		Game.stats.wonGame();
-		Game.stats.saveStats();
+		Game.stats.syncStats();
+		Game.stats.updateStatsSidebar();
 		this.resetFogOfWar();
 		this.initialize();
 	} else if (this.humanFleet.allShipsSunk()) {
 		alert('Yarr! The computer sank all your ships. Try again.');
 		Game.gameOver = true;
 		Game.stats.lostGame();
-		Game.stats.saveStats();
+		Game.stats.syncStats();
+		Game.stats.updateStatsSidebar();
 		this.resetFogOfWar();
 		this.initialize();
 	}
@@ -372,6 +412,7 @@ Game.prototype.initialize = function() {
 
 	this.robot = new AI(this);
 	Game.stats = new Stats();
+	Game.stats.updateStatsSidebar();
 
 	// Reset game variables
 	this.shotsTaken = 0;
@@ -407,6 +448,7 @@ Game.prototype.initialize = function() {
 
 	document.getElementById('rotate-button').addEventListener('click', this.toggleRotation, false);
 	document.getElementById('start-game').addEventListener('click', this.startGame, false);
+	document.getElementById('reset-stats').addEventListener('click', Game.stats.resetStats, false);
 
 	this.computerFleet.placeShipsRandomly();
 };
