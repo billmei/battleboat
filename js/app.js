@@ -105,6 +105,7 @@ Stats.prototype.resetStats = function(e) {
 	localStorage.setItem('totalHits', 0);
 	localStorage.setItem('gamesPlayed', 0);
 	localStorage.setItem('gamesWon', 0);
+	localStorage.setItem('showTutorial', true);
 	this.shotsTaken = 0;
 	this.shotsHit = 0;
 	this.totalShots = 0;
