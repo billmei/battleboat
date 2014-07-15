@@ -174,11 +174,16 @@ button {
 		background-color: #808080;
 	}
 	.grid-miss, .grid-miss:hover, .human-player .grid-miss:hover {
-		background-color: #E1EDF6;
+		background-color: #FFFFFF;
+		background-image: url('../img/cross-icon.png'); /* Fallback */
+		background-image: url('../img/cross-icon.svg');
+		background-position: center;
+		background-repeat: no-repeat;
 	}
 	.grid-hit, .grid-hit:hover, .human-player .grid-hit:hover {
 		background-color: #F60018;
-		background-image: url('../img/cross-icon.png');
+		background-image: url('../img/cross-icon.png'); /* Fallback */
+		background-image: url('../img/cross-icon.svg');
 		background-position: center;
 		background-repeat: no-repeat;
 	}

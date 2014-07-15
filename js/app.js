@@ -7,7 +7,7 @@
 // http://www.datagenetics.com/blog/december32011/
 
 // TODO: Log and display the user's win percentage. Store via localstorage
-// TODO: Use analytics to track win/loss rates against real human players
+// TODO: Use analytics to track win/loss rates against real human players (use an ajax request to get uuid's)
 // TODO: Use analytics to track average number of shots taken
 // TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0) [Don't track the win/loss if the heatmap is turned on]
 // TODO: Use `Array.filter()` instead of for-loop checking each element
