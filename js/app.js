@@ -3,7 +3,7 @@
 // Bill Mei, 2014
 // MIT License
 
-// Thanks to Nick Berry for the inspiration behind the AI
+// Thanks to Nick Berry for the inspiration
 // http://www.datagenetics.com/blog/december32011/
 
 // TODO: Use analytics to track stats against real human players (use an ajax request to get uuid's)
@@ -39,26 +39,10 @@ CONST.TYPE_SUNK = 4; // 4 = sunk ship
 function Stats(){
 	this.shotsTaken = 0;
 	this.shotsHit = 0;
-	if (localStorage.getItem('totalShots')) {
-		this.totalShots = parseInt(localStorage.getItem('totalShots'));
-	} else {
-		this.totalShots = 0;
-	}
-	if (localStorage.getItem('totalHits')) {
-		this.totalHits = parseInt(localStorage.getItem('totalHits'));
-	} else {
-		this.totalHits = 0;
-	}
-	if (localStorage.getItem('gamesPlayed')) {
-		this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed'));
-	} else {
-		this.gamesPlayed = 0;
-	}
-	if (localStorage.getItem('gamesWon')) {
-		this.gamesWon = parseInt(localStorage.getItem('gamesWon'));
-	} else {
-		this.gamesWon = 0;
-	}
+	this.totalShots = 0 + parseInt(localStorage.getItem('totalShots'));
+	this.totalHits = 0 + parseInt(localStorage.getItem('totalHits'));
+	this.gamesPlayed = 0 + parseInt(localStorage.getItem('gamesPlayed'));
+	this.gamesWon = 0 + parseInt(localStorage.getItem('gamesWon'));
 }
 Stats.prototype.incrementShots = function() {
 	this.shotsTaken++;
