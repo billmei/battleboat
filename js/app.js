@@ -39,10 +39,10 @@ CONST.TYPE_SUNK = 4; // 4 = sunk ship
 function Stats(){
 	this.shotsTaken = 0;
 	this.shotsHit = 0;
-	this.totalShots = 0 + parseInt(localStorage.getItem('totalShots'));
-	this.totalHits = 0 + parseInt(localStorage.getItem('totalHits'));
-	this.gamesPlayed = 0 + parseInt(localStorage.getItem('gamesPlayed'));
-	this.gamesWon = 0 + parseInt(localStorage.getItem('gamesWon'));
+	this.totalShots = parseInt(localStorage.getItem('totalShots')) || 0;
+	this.totalHits = parseInt(localStorage.getItem('totalHits')) || 0;
+	this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed')) || 0;
+	this.gamesWon = parseInt(localStorage.getItem('gamesWon')) || 0;
 }
 Stats.prototype.incrementShots = function() {
 	this.shotsTaken++;
@@ -60,9 +60,9 @@ Stats.prototype.lostGame = function() {
 // Saves the game statistics to localstorage
 Stats.prototype.syncStats = function() {
 	if(!this.skipCurrentGame) {
-		var totalShots = parseInt(localStorage.getItem('totalShots'));
+		var totalShots = parseInt(localStorage.getItem('totalShots')) || 0;
 		totalShots += this.shotsTaken;
-		var totalHits = parseInt(localStorage.getItem('totalHits'));
+		var totalHits = parseInt(localStorage.getItem('totalHits')) || 0;
 		totalHits += this.shotsHit;
 		localStorage.setItem('totalShots', totalShots);
 		localStorage.setItem('totalHits', totalHits);
@@ -815,17 +815,8 @@ function AI(gameObject) {
 	this.initializeProbabilities();
 	this.updateProbabilities();
 }
-AI.PROB_WEIGHT = 50; // arbitrarily big number
-// Initializes the probability grid for targeting
-AI.prototype.initializeProbabilities = function() {
-	for (var x = 0; x < Game.size; x++) {
-		var row = [];
-		this.probabilityGrid[x] = row;
-		for (var y = 0; y < Game.size; y++) {
-			row.push(0);
-		}
-	}
-};
+AI.PROB_WEIGHT = 5000; // arbitrarily big number
+
 // Scouts the grid based on max probability, and shoots at the cell
 // that has the highest probability of containing a ship
 AI.prototype.shoot = function() {
@@ -873,12 +864,6 @@ AI.prototype.shoot = function() {
 	// Update probability grid after each shot
 	this.updateProbabilities();
 };
-// finds a human ship by coordinates
-// Returns Ship
-AI.prototype.findHumanShip = function(x, y) {
-	return this.gameObject.humanFleet.findShipByCoords(x, y);
-};
-
 // Update the probability grid
 AI.prototype.updateProbabilities = function() {
 	var roster = this.virtualFleet.fleetRoster;
@@ -934,7 +919,16 @@ AI.prototype.updateProbabilities = function() {
 		}
 	}
 };
-
+// Initializes the probability grid for targeting
+AI.prototype.initializeProbabilities = function() {
+	for (var x = 0; x < Game.size; x++) {
+		var row = [];
+		this.probabilityGrid[x] = row;
+		for (var y = 0; y < Game.size; y++) {
+			row.push(0);
+		}
+	}
+};
 // Resets the probability grid to all 0.
 AI.prototype.resetProbabilities = function() {
 	for (var x = 0; x < Game.size; x++) {
@@ -942,6 +936,18 @@ AI.prototype.resetProbabilities = function() {
 			this.probabilityGrid[x][y] = 0;
 		}
 	}
+};
+AI.prototype.metagame = function() {
+	// Inputs:
+	// Proximity of hit cells to edge
+	// Proximity of hit cells to each other
+	// Edit the probability grid by multiplying each cell with a new probability weight (e.g. 0.4, or 3). Set this as a CONST and make 1-CONST the inverse for decreasing, or 2*CONST for increasing
+};
+
+// finds a human ship by coordinates
+// Returns Ship
+AI.prototype.findHumanShip = function(x, y) {
+	return this.gameObject.humanFleet.findShipByCoords(x, y);
 };
 // Checks whether or not a given ship's cells passes through
 // any cell that is hit.
