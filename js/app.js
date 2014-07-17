@@ -195,11 +195,12 @@ Game.prototype.shootListener = function(e) {
 };
 // Creates click event listeners on each of the ship names in the roster
 Game.prototype.rosterListener = function(e) {
-	var ships = document.querySelectorAll('.fleet-roster li');
-	for (var i = 0; i < ships.length; i++) {
-		var classes = ships[i].getAttribute('class') || '';
+	// Remove all classes of 'placing' from the fleet roster first
+	var roster = document.querySelectorAll('.fleet-roster li');
+	for (var i = 0; i < roster.length; i++) {
+		var classes = roster[i].getAttribute('class') || '';
 		classes = classes.replace('placing', '');
-		ships[i].setAttribute('class', classes);
+		roster[i].setAttribute('class', classes);
 	}
 
 	// Move the highlight to the next step
@@ -207,6 +208,7 @@ Game.prototype.rosterListener = function(e) {
 		gameTutorial.nextStep();
 	}
 	
+	// Set the class of the target ship to 'placing'
 	Game.placeShipType = e.target.getAttribute('id');
 	document.getElementById(Game.placeShipType).setAttribute('class', 'placing');
 	Game.placeShipDirection = parseInt(document.getElementById('rotate-button').getAttribute('data-direction'), 10);
