@@ -3,9 +3,9 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width,maximum-scale=1">
-	<title>Battleboat | An AI written in JavaScript that plays battleship</title>
-	<meta name="description" content="Battleboat: An AI written in JavaScript that plays battleship">
-	<meta name="keywords" content="Battleboat, battleship, AI, JavaScript">
+	<title>Battleboat | A robot written in JavaScript that plays battleship</title>
+	<meta name="description" content="Battleboat: A robot written in JavaScript that plays battleship">
+	<meta name="keywords" content="Battleboat, battleship, AI, robot, JavaScript">
 	
 	<link rel="icon" type="image/png" href="img/favicon.png" />
 	<link rel="image_src" href="img/apple-touch-icon-144x144-precomposed.png" />
@@ -24,39 +24,37 @@
 <body>
 <div class="container">
 	<h1>Battleboat</h1>
-	<p class="tagline">An AI written in JavaScript that plays battleship.</p>
+	<p class="tagline">An experiment to write the world's most challenging battleship-playing robot.</p>
 	<div class="game-container">
-		<div class="grid-container">
-		<h2>Your Fleet</h2>
-		<div class="grid human-player"><span class="no-js">Please enable JavaScript to play this game</span></div>
-	</div><div class="grid-container">
-		<h2>Enemy Fleet</h2>
-		<div class="grid computer-player"><span class="no-js">Please enable JavaScript to play this game</span></div>
-	</div>
+		<div id="sidebar-left">
+			<h2>Place Your Ships</h2>
+			<ul class="fleet-roster">
+				<li id="patrolboat">Patrol Boat</li>
+				<li id="submarine">Submarine</li>
+				<li id="destroyer">Destroyer</li>
+				<li id="battleship">Battleship</li>
+				<li id="carrier">Aircraft Carrier</li>
+			</ul>
+			<button id="rotate-button" data-direction="0">Rotate Ship</button>
+			<button id="start-game" class="hidden">Start Game</button>
+		</div><div id="sidebar-right">
+			<h2>Stats</h2>
+			<p><strong>Games Won</strong></p>
+			<p id="stats-wins">0 of 0</p>
+			<p><strong>Accuracy</strong></p>
+			<p id="stats-accuracy">0%</p>
+			<button id="reset-stats">Reset Stats</button>
+		</div><div class="grid-container">
+			<h2>Your Fleet</h2>
+			<div class="grid human-player"><span class="no-js">Please enable JavaScript to play this game</span></div>
+		</div><div class="grid-container">
+			<h2>Enemy Fleet</h2>
+			<div class="grid computer-player"><span class="no-js">Please enable JavaScript to play this game</span></div>
+		</div>
 	</div>
 	
 	<p>Created by <a href="http://www.kortaggio.com">Bill Mei</a>.</p>
 	<p>This project is open-source on GitHub: <a href="https://github.com/kortaggio/battleboat">https://github.com/kortaggio/battleboat</a></p>
-	<div id="sidebar-left">
-		<h2>Your ships</h2>
-		<ul class="fleet-roster">
-			<li id="patrolboat">Patrol Boat</li>
-			<li id="submarine">Submarine</li>
-			<li id="destroyer">Destroyer</li>
-			<li id="battleship">Battleship</li>
-			<li id="carrier">Aircraft Carrier</li>
-		</ul>
-		<button id="rotate-button" data-direction="0">Rotate Ship</button>
-		<button id="start-game" class="hidden">Start Game</button>
-	</div>
-	<div id="sidebar-right">
-		<h2>Stats</h2>
-		<p><strong>Games Won</strong></p>
-		<p id="stats-wins">0 of 0</p>
-		<p><strong>Accuracy</strong></p>
-		<p id="stats-accuracy">0%</p>
-		<button id="reset-stats">Reset Stats</button>
-	</div>
 </div>
 
 <script>

@@ -56,10 +56,12 @@ button {
 }
 
 .container {
-	position: relative;
 	width: 870px;
 	text-align: center;
 	margin: 20px auto 100px auto;
+}
+.game-container {
+	position: relative;
 }
 	#sidebar-left, #sidebar-right {
 		width: 150px;
@@ -67,7 +69,7 @@ button {
 		margin: 0;
 		background-color: #EEEEEE;
 		position: absolute;
-		top: 12.9em;
+		top: 4.5em;
 		-webkit-border-radius: 5px;
 		-moz-border-radius: 5px;
 		border-radius: 5px;

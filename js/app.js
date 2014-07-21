@@ -12,6 +12,12 @@
 // TODO: Change the `alert()`s to CSS transition for a win screen
 // TODO: Meta-game the user between playsessions
 
+console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
+	"hack the ajax requests, I'm using Google Analytics to collect info about " +
+	"the AI's win/loss percentage in order to improve the bot, so if you do " +
+	"look around, I kindly ask that you don't give it bad data. Thanks.");
+
+
 // Global Constants
 function CONST() {}
 CONST.AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
@@ -1067,5 +1073,3 @@ function transitionEndEventName() {
 		}
 	}
 }
-
-// console.log("Hi! Thanks for checking out this game. Please be nice and don't hack the ajax requests, I'm using Google Analytics to collect info about the AI's win/loss percentage in order to improve the bot, so if you do look around, I kindly ask that you don't give it bad data. Thanks.");
