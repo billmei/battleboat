@@ -89,18 +89,18 @@ Stats.prototype.resetStats = function(e) {
 	// Skip tracking stats until the end of the current game or else
 	// the accuracy percentage will be wrong (since you are tracking
 	// hits that didn't start from the beginning of the game)
-	this.skipCurrentGame = true;
+	Game.stats.skipCurrentGame = true;
 	localStorage.setItem('totalShots', 0);
 	localStorage.setItem('totalHits', 0);
 	localStorage.setItem('gamesPlayed', 0);
 	localStorage.setItem('gamesWon', 0);
 	localStorage.setItem('showTutorial', true);
-	this.shotsTaken = 0;
-	this.shotsHit = 0;
-	this.totalShots = 0;
-	this.totalHits = 0;
-	this.gamesPlayed = 0;
-	this.gamesWon = 0;
+	Game.stats.shotsTaken = 0;
+	Game.stats.shotsHit = 0;
+	Game.stats.totalShots = 0;
+	Game.stats.totalHits = 0;
+	Game.stats.gamesPlayed = 0;
+	Game.stats.gamesWon = 0;
 	Game.stats.updateStatsSidebar();
 };
 
