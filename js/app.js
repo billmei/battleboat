@@ -19,7 +19,7 @@ console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
 
 
 // Global Constants
-function CONST() {}
+var CONST = {};
 CONST.AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 // You are player 0 and the computer is player 1
 // The virtual player is used for generating temporary ships
@@ -44,10 +44,10 @@ CONST.TYPE_SUNK = 4; // 4 = sunk ship
 function Stats(){
 	this.shotsTaken = 0;
 	this.shotsHit = 0;
-	this.totalShots = parseInt(localStorage.getItem('totalShots')) || 0;
-	this.totalHits = parseInt(localStorage.getItem('totalHits')) || 0;
-	this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed')) || 0;
-	this.gamesWon = parseInt(localStorage.getItem('gamesWon')) || 0;
+	this.totalShots = parseInt(localStorage.getItem('totalShots'), 10) || 0;
+	this.totalHits = parseInt(localStorage.getItem('totalHits'), 10) || 0;
+	this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed'), 10) || 0;
+	this.gamesWon = parseInt(localStorage.getItem('gamesWon'), 10) || 0;
 }
 Stats.prototype.incrementShots = function() {
 	this.shotsTaken++;
@@ -65,9 +65,9 @@ Stats.prototype.lostGame = function() {
 // Saves the game statistics to localstorage
 Stats.prototype.syncStats = function() {
 	if(!this.skipCurrentGame) {
-		var totalShots = parseInt(localStorage.getItem('totalShots')) || 0;
+		var totalShots = parseInt(localStorage.getItem('totalShots'), 10) || 0;
 		totalShots += this.shotsTaken;
-		var totalHits = parseInt(localStorage.getItem('totalHits')) || 0;
+		var totalHits = parseInt(localStorage.getItem('totalHits'), 10) || 0;
 		totalHits += this.shotsHit;
 		localStorage.setItem('totalShots', totalShots);
 		localStorage.setItem('totalHits', totalHits);
@@ -766,11 +766,8 @@ Ship.DIRECTION_HORIZONTAL = 1;
 // Constructor
 function Tutorial() {
 	this.currentStep = 0;
-	if (localStorage.getItem('showTutorial')) {
-		this.showTutorial = (localStorage.getItem('showTutorial') === 'true');
-	} else {
-		this.showTutorial = true;
-	}
+	// Check if 'showTutorial' is initialized, if it's uninitialized, set it to true.
+	this.showTutorial = localStorage.getItem('showTutorial') !== 'false';
 }
 // Advances the tutorial to the next step
 Tutorial.prototype.nextStep = function() {
@@ -800,7 +797,7 @@ Tutorial.prototype.nextStep = function() {
 			var computerClasses = computerGrid.getAttribute('class');
 			computerClasses = computerClasses.replace(' highlight', '');
 			computerGrid.setAttribute('class', computerClasses);
-			this.currentStep = NaN;
+			this.currentStep = 5;
 			this.showTutorial = false;
 			localStorage.setItem('showTutorial', false);
 			break;
