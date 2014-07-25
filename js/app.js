@@ -63,8 +63,9 @@ Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
 	ga('send', 'event', 'gameOver', 'lose', this.uuid);
 };
-// Saves the game statistics to localstorage, also uploads win/loss
-// data to Google Analytics
+// Saves the game statistics to localstorage, also uploads where the user placed
+// their ships to Google Analytics so that in the future I'll be able to see
+// which cells humans are disproportionately biased to place ships on.
 Stats.prototype.syncStats = function() {
 	if(!this.skipCurrentGame) {
 		var totalShots = parseInt(localStorage.getItem('totalShots'), 10) || 0;
@@ -76,6 +77,15 @@ Stats.prototype.syncStats = function() {
 		localStorage.setItem('gamesPlayed', this.gamesPlayed);
 		localStorage.setItem('gamesWon', this.gamesWon);
 		localStorage.setItem('uuid', this.uuid);
+
+		var stringifiedGrid = '';
+		for (var x = 0; x < Game.size; x++) {
+			for (var y = 0; y < Game.size; y++) {
+				stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ',\n';
+			}
+		}
+		ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
+
 	} else {
 		this.skipCurrentGame = false;
 	}
@@ -87,7 +97,7 @@ Stats.prototype.updateStatsSidebar = function() {
 	elWinPercent.innerHTML = this.gamesWon + " of " + this.gamesPlayed;
 	elAccuracy.innerHTML = Math.round((100 * this.totalHits / this.totalShots) || 0) + "%";
 };
-// Reset all game statistics to zero
+// Reset all game vanity statistics to zero. Doesn't reset your uuid.
 Stats.prototype.resetStats = function(e) {
 	// Skip tracking stats until the end of the current game or else
 	// the accuracy percentage will be wrong (since you are tracking
