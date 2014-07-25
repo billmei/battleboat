@@ -6,17 +6,15 @@
 // Thanks to Nick Berry for the inspiration
 // http://www.datagenetics.com/blog/december32011/
 
-// TODO: Use analytics to track stats against real human players (use an ajax request to get uuid's)
 // TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0) [Don't track the win/loss if the heatmap is turned on]
 // TODO: Use `Array.filter()` instead of for-loop checking each element
 // TODO: Change the `alert()`s to CSS transition for a win screen
 // TODO: Meta-game the user between playsessions
 
 console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
-	"hack the ajax requests, I'm using Google Analytics to collect info about " +
+	"hack the Stats object, I'm using Google Analytics to collect info about " +
 	"the AI's win/loss percentage in order to improve the bot, so if you do " +
 	"look around, I kindly ask that you don't give it bad data. Thanks.");
-
 
 // Global Constants
 var CONST = {};
@@ -48,6 +46,7 @@ function Stats(){
 	this.totalHits = parseInt(localStorage.getItem('totalHits'), 10) || 0;
 	this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed'), 10) || 0;
 	this.gamesWon = parseInt(localStorage.getItem('gamesWon'), 10) || 0;
+	this.uuid = localStorage.getItem('uuid') || this.createUUID();
 }
 Stats.prototype.incrementShots = function() {
 	this.shotsTaken++;
@@ -58,11 +57,14 @@ Stats.prototype.hitShot = function() {
 Stats.prototype.wonGame = function() {
 	this.gamesPlayed++;
 	this.gamesWon++;
+	ga('send', 'event', 'gameOver', 'win', this.uuid);
 };
 Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
+	ga('send', 'event', 'gameOver', 'lose', this.uuid);
 };
-// Saves the game statistics to localstorage
+// Saves the game statistics to localstorage, also uploads win/loss
+// data to Google Analytics
 Stats.prototype.syncStats = function() {
 	if(!this.skipCurrentGame) {
 		var totalShots = parseInt(localStorage.getItem('totalShots'), 10) || 0;
@@ -73,6 +75,7 @@ Stats.prototype.syncStats = function() {
 		localStorage.setItem('totalHits', totalHits);
 		localStorage.setItem('gamesPlayed', this.gamesPlayed);
 		localStorage.setItem('gamesWon', this.gamesWon);
+		localStorage.setItem('uuid', this.uuid);
 	} else {
 		this.skipCurrentGame = false;
 	}
@@ -102,6 +105,42 @@ Stats.prototype.resetStats = function(e) {
 	Game.stats.gamesPlayed = 0;
 	Game.stats.gamesWon = 0;
 	Game.stats.updateStatsSidebar();
+};
+Stats.prototype.createUUID = function(len, radix) {
+	/*!
+	Math.uuid.js (v1.4)
+	http://www.broofa.com
+	mailto:robert@broofa.com
+
+	Copyright (c) 2010 Robert Kieffer
+	Dual licensed under the MIT and GPL licenses.
+	*/
+	var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(''),
+	uuid = [], i;
+	radix = radix || chars.length;
+
+	if (len) {
+		// Compact form
+		for (i = 0; i < len; i++) uuid[i] = chars[0 | Math.random()*radix];
+	} else {
+		// rfc4122, version 4 form
+		var r;
+
+		// rfc4122 requires these characters
+		uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+		uuid[14] = '4';
+
+		// Fill in random data.  At i==19 set the high bits of clock sequence as
+		// per rfc4122, sec. 4.1.5
+		for (i = 0; i < 36; i++) {
+			if (!uuid[i]) {
+				r = 0 | Math.random()*16;
+				uuid[i] = chars[(i === 19) ? (r & 0x3) | 0x8 : r];
+			}
+		}
+	}
+
+	return uuid.join('');
 };
 
 // Game manager object
@@ -946,7 +985,6 @@ AI.prototype.metagame = function() {
 	// Proximity of hit cells to each other
 	// Edit the probability grid by multiplying each cell with a new probability weight (e.g. 0.4, or 3). Set this as a CONST and make 1-CONST the inverse for decreasing, or 2*CONST for increasing
 };
-
 // finds a human ship by coordinates
 // Returns Ship
 AI.prototype.findHumanShip = function(x, y) {
