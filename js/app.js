@@ -77,18 +77,17 @@ Stats.prototype.syncStats = function() {
 		localStorage.setItem('gamesPlayed', this.gamesPlayed);
 		localStorage.setItem('gamesWon', this.gamesWon);
 		localStorage.setItem('uuid', this.uuid);
-
-		var stringifiedGrid = '';
-		for (var x = 0; x < Game.size; x++) {
-			for (var y = 0; y < Game.size; y++) {
-				stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ',\n';
-			}
-		}
-		ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
-
 	} else {
 		this.skipCurrentGame = false;
 	}
+	
+	var stringifiedGrid = '';
+	for (var x = 0; x < Game.size; x++) {
+		for (var y = 0; y < Game.size; y++) {
+			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ',\n';
+		}
+	}
+	ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
 };
 // Updates the sidebar display with the current statistics
 Stats.prototype.updateStatsSidebar = function() {
