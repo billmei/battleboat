@@ -223,6 +223,9 @@ button {
 		-o-animation: highlight 1.5s infinite;
 		animation: highlight 1.5s infinite;
 	}
+.current-step {
+	font-weight: bold;
+}
 
 @media(max-width: 1300px) {
 	.container {
