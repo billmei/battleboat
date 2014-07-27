@@ -52,8 +52,14 @@ button {
 		}
 
 .tagline {
-	margin-bottom: 3em;
+	margin-bottom: 2em;
 }
+	.instructions {
+		width: auto;
+		display: inline-block;
+		text-align: left;
+		margin: 0 auto 3em auto;
+	}
 
 .container {
 	width: 870px;
