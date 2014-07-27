@@ -174,7 +174,9 @@ Game.placingOnGrid = false;
 // Checks if the game is won, and if it is, re-initializes the game
 Game.prototype.checkIfWon = function() {
 	if (this.computerFleet.allShipsSunk()) {
-		alert('Congratulations, you win!');
+		alert('Congratulations, you win!\n\nHelp me improve the AI, try ' +
+			'playing again? The more games you play the more accurately the AI ' +
+			'will be able to fire.');
 		Game.gameOver = true;
 		Game.stats.wonGame();
 		Game.stats.syncStats();
