@@ -6,10 +6,16 @@
 // Thanks to Nick Berry for the inspiration
 // http://www.datagenetics.com/blog/december32011/
 
-// TODO: Add a toggle that visualizes the probability grid via heatmap (scale a color via max and 0) [Don't track the win/loss if the heatmap is turned on]
-// TODO: Use `Array.filter()` instead of for-loop checking each element
+// TODO: Gather data from human playsessions to determine the most common
+//       starting positions
+// TODO: Meta-game the user between playsessions, using heads/tails prediction
+//       to determine whether the user is going to place their ships near the
+//       edges or in the center. Humans aren't perfectly random so the AI
+//       should be able to accurately guess the play strategy given enough data.
+// TODO: Add a toggle that visualizes the probability grid via heatmap
+//       (scale a color via max and 0) [Don't track the win/loss if the
+//       heatmap is turned on]
 // TODO: Change the `alert()`s to CSS transition for a win screen
-// TODO: Meta-game the user between playsessions
 
 console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
 	"hack the Stats object, I'm using Google Analytics to collect info about " +
