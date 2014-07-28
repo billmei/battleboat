@@ -90,7 +90,7 @@ Stats.prototype.syncStats = function() {
 	var stringifiedGrid = '';
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
-			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ',\n';
+			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ';\n';
 		}
 	}
 	ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
