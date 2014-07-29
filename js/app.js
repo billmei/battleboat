@@ -8,10 +8,15 @@
 
 // TODO: Gather data from human playsessions to determine the most common
 //       starting positions
-// TODO: Meta-game the user between playsessions, using heads/tails prediction
-//       to determine whether the user is going to place their ships near the
-//       edges or in the center. Humans aren't perfectly random so the AI
-//       should be able to accurately guess the play strategy given enough data.
+// TODO: Use a markov-chain to determine what first few cells the AI should start
+//       shooting at. Use a matrix to find out how likely each cell will have a ship
+//       in it after each round (the matrix is a state transition between two games)
+// TODO: Normalize the probability grid by decreasing weight exponentially as
+//       the probability gets further away from the max probability. Instead of
+//       telling the AI to always shoot at the cell with the max probability,
+//       make it choose cells based on its weighted probability. Therefore, it will
+//       be possible (though not likely) for the AI to go for a non-max probability
+//       cell, in order to introduce some unpredictability for the human player.
 // TODO: Add a toggle that visualizes the probability grid via heatmap
 //       (scale a color via max and 0) [Don't track the win/loss if the
 //       heatmap is turned on]
@@ -63,11 +68,11 @@ Stats.prototype.hitShot = function() {
 Stats.prototype.wonGame = function() {
 	this.gamesPlayed++;
 	this.gamesWon++;
-	// ga('send', 'event', 'gameOver', 'win', this.uuid);
+	ga('send', 'event', 'gameOver', 'win', this.uuid);
 };
 Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
-	// ga('send', 'event', 'gameOver', 'lose', this.uuid);
+	ga('send', 'event', 'gameOver', 'lose', this.uuid);
 };
 // Saves the game statistics to localstorage, also uploads where the user placed
 // their ships to Google Analytics so that in the future I'll be able to see
@@ -93,7 +98,7 @@ Stats.prototype.syncStats = function() {
 			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ';\n';
 		}
 	}
-	// ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
+	ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
 };
 // Updates the sidebar display with the current statistics
 Stats.prototype.updateStatsSidebar = function() {
