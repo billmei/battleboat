@@ -11,6 +11,12 @@
 // TODO: Use a markov-chain to determine what first few cells the AI should start
 //       shooting at. Use a matrix to find out how likely each cell will have a ship
 //       in it after each round (the matrix is a state transition between two games)
+//       The markov-chain can have two stats that will be proved or disproved upon
+//       the first cell that renders a hit ship.
+//       This could also work as two possible markov chains, and the AI selects one
+//       based on what the max probability in the particular cell that has a hit ship
+//       which corresponds to the same cell for the markov chain that predicted the
+//       ship with the highest probability.
 // TODO: Normalize the probability grid by decreasing weight exponentially as
 //       the probability gets further away from the max probability. Instead of
 //       telling the AI to always shoot at the cell with the max probability,
@@ -18,8 +24,9 @@
 //       be possible (though not likely) for the AI to go for a non-max probability
 //       cell, in order to introduce some unpredictability for the human player.
 // TODO: Add a toggle that visualizes the probability grid via heatmap
-//       (scale a color via max and 0) [Don't track the win/loss if the
-//       heatmap is turned on]
+//       (scale a color via max and 0). The toggle only works once the user has
+//       finished placing their ships, or she can cheat easily by placing her ships
+//       outside the regions with the highest probability.
 // TODO: Change the `alert()`s to CSS transition for a win screen
 
 console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
