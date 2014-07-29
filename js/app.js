@@ -75,11 +75,11 @@ Stats.prototype.hitShot = function() {
 Stats.prototype.wonGame = function() {
 	this.gamesPlayed++;
 	this.gamesWon++;
-	ga('send', 'event', 'gameOver', 'win', this.uuid);
+	// ga('send', 'event', 'gameOver', 'win', this.uuid);
 };
 Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
-	ga('send', 'event', 'gameOver', 'lose', this.uuid);
+	// ga('send', 'event', 'gameOver', 'lose', this.uuid);
 };
 // Saves the game statistics to localstorage, also uploads where the user placed
 // their ships to Google Analytics so that in the future I'll be able to see
@@ -105,7 +105,7 @@ Stats.prototype.syncStats = function() {
 			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ';\n';
 		}
 	}
-	ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
+	// ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
 };
 // Updates the sidebar display with the current statistics
 Stats.prototype.updateStatsSidebar = function() {
@@ -176,7 +176,7 @@ function Game(size) {
 	Game.size = size;
 	this.shotsTaken = 0;
 	this.createGrid();
-	this.initialize();
+	this.init();
 }
 Game.size = 10; // Default grid size is 10x10
 Game.gameOver = false;
@@ -194,7 +194,7 @@ Game.prototype.checkIfWon = function() {
 		Game.stats.syncStats();
 		Game.stats.updateStatsSidebar();
 		this.resetFogOfWar();
-		this.initialize();
+		this.init();
 	} else if (this.humanFleet.allShipsSunk()) {
 		alert('Yarr! The computer sank all your ships. Try again.');
 		Game.gameOver = true;
@@ -202,7 +202,7 @@ Game.prototype.checkIfWon = function() {
 		Game.stats.syncStats();
 		Game.stats.updateStatsSidebar();
 		this.resetFogOfWar();
-		this.initialize();
+		this.init();
 	}
 };
 // Shoots at the target player on the grid.
@@ -221,11 +221,11 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
 		console.log("There was an error trying to find the correct player to target");
 		}
 
-	if (targetGrid.containsDamagedShip(x, y)) {
+	if (targetGrid.isDamagedShip(x, y)) {
 		return null;
-	} else if (targetGrid.containsCannonball(x, y)) {
+	} else if (targetGrid.isMiss(x, y)) {
 		return null;
-	} else if (targetGrid.containsUndamagedShip(x, y)) {
+	} else if (targetGrid.isUndamagedShip(x, y)) {
 		// update the board/grid
 		targetGrid.updateCell(x, y, 'hit', targetPlayer);
 		// IMPORTANT: This function needs to be called _after_ updating the cell to a 'hit',
@@ -464,7 +464,7 @@ Game.prototype.createGrid = function() {
 	
 };
 // Initializes the Game. Also resets the game if previously initialized
-Game.prototype.initialize = function() {
+Game.prototype.init = function() {
 	this.humanGrid = new Grid(Game.size);
 	this.computerGrid = new Grid(Game.size);
 	this.humanFleet = new Fleet(this.humanGrid, CONST.HUMAN_PLAYER);
@@ -517,11 +517,11 @@ Game.prototype.initialize = function() {
 function Grid(size) {
 	this.size = size;
 	this.cells = [];
-	this.initialize();
+	this.init();
 }
 
 // Initialize and populate the grid
-Grid.prototype.initialize = function() {
+Grid.prototype.init = function() {
 	for (var x = 0; x < this.size; x++) {
 		var row = [];
 		this.cells[x] = row;
@@ -568,19 +568,19 @@ Grid.prototype.updateCell = function(x, y, type, targetPlayer) {
 };
 // Checks to see if a cell contains an undamaged ship
 // Returns boolean
-Grid.prototype.containsUndamagedShip = function(x, y) {
+Grid.prototype.isUndamagedShip = function(x, y) {
 	return this.cells[x][y] === CONST.TYPE_SHIP;
 };
 // Checks to see if the shot was missed. This is equivalent
 // to checking if a cell contains a cannonball
 // Returns boolean
-Grid.prototype.containsCannonball = function(x, y) {
+Grid.prototype.isMiss = function(x, y) {
 	return this.cells[x][y] === CONST.TYPE_MISS;
 };
 // Checks to see if a cell contains a damaged ship,
 // either hit or sunk.
 // Returns boolean
-Grid.prototype.containsDamagedShip = function(x, y) {
+Grid.prototype.isDamagedShip = function(x, y) {
 	return this.cells[x][y] === CONST.TYPE_HIT || this.cells[x][y] === CONST.TYPE_SUNK;
 };
 
@@ -893,9 +893,9 @@ function AI(gameObject) {
 	this.virtualGrid = new Grid(Game.size);
 	this.virtualFleet = new Fleet(this.virtualGrid, CONST.VIRTUAL_PLAYER);
 
-	this.probabilityGrid = [];
-	this.initializeProbabilities();
-	this.updateProbabilities();
+	this.probGrid = []; // Probability Grid
+	this.initProbs();
+	this.updateProbs();
 }
 AI.PROB_WEIGHT = 5000; // arbitrarily big number
 
@@ -906,8 +906,8 @@ AI.prototype.shoot = function() {
 	var maxProbCoords = {};
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
-			if (this.probabilityGrid[x][y] > maxProbability) {
-				maxProbability = this.probabilityGrid[x][y];
+			if (this.probGrid[x][y] > maxProbability) {
+				maxProbability = this.probGrid[x][y];
 				maxProbCoords.x = x;
 				maxProbCoords.y = y;
 			}
@@ -944,13 +944,13 @@ AI.prototype.shoot = function() {
 		}
 	}
 	// Update probability grid after each shot
-	this.updateProbabilities();
+	this.updateProbs();
 };
 // Update the probability grid
-AI.prototype.updateProbabilities = function() {
+AI.prototype.updateProbs = function() {
 	var roster = this.virtualFleet.fleetRoster;
 	var coords;
-	this.resetProbabilities();
+	this.resetProbs();
 
 	// Probabilities are not normalized to fit in the interval [0, 1]
 	// because we're only interested in the maximum value.
@@ -970,11 +970,11 @@ AI.prototype.updateProbabilities = function() {
 					coords = roster[i].getAllShipCells();
 					if (this.passesThroughHitCell(coords)) {
 						for (var j = 0; j < coords.length; j++) {
-							this.probabilityGrid[coords[j].x][coords[j].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
+							this.probGrid[coords[j].x][coords[j].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
 						}
 					} else {
 						for (var _j = 0; _j < coords.length; _j++) {
-							this.probabilityGrid[coords[_j].x][coords[_j].y]++;
+							this.probGrid[coords[_j].x][coords[_j].y]++;
 						}
 					}
 				}
@@ -983,11 +983,11 @@ AI.prototype.updateProbabilities = function() {
 					coords = roster[i].getAllShipCells();
 					if (this.passesThroughHitCell(coords)) {
 						for (var k = 0; k < coords.length; k++) {
-							this.probabilityGrid[coords[k].x][coords[k].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
+							this.probGrid[coords[k].x][coords[k].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
 						}
 					} else {
 						for (var _k = 0; _k < coords.length; _k++) {
-							this.probabilityGrid[coords[_k].x][coords[_k].y]++;
+							this.probGrid[coords[_k].x][coords[_k].y]++;
 						}
 					}
 				}
@@ -995,27 +995,27 @@ AI.prototype.updateProbabilities = function() {
 				// Set hit cells to probability zero so the AI doesn't
 				// target cells that are already hit
 				if (this.virtualGrid.cells[x][y] === CONST.TYPE_HIT) {
-					this.probabilityGrid[x][y] = 0;
+					this.probGrid[x][y] = 0;
 				}
 			}
 		}
 	}
 };
 // Initializes the probability grid for targeting
-AI.prototype.initializeProbabilities = function() {
+AI.prototype.initProbs = function() {
 	for (var x = 0; x < Game.size; x++) {
 		var row = [];
-		this.probabilityGrid[x] = row;
+		this.probGrid[x] = row;
 		for (var y = 0; y < Game.size; y++) {
 			row.push(0);
 		}
 	}
 };
 // Resets the probability grid to all 0.
-AI.prototype.resetProbabilities = function() {
+AI.prototype.resetProbs = function() {
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
-			this.probabilityGrid[x][y] = 0;
+			this.probGrid[x][y] = 0;
 		}
 	}
 };
