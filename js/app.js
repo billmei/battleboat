@@ -75,11 +75,11 @@ Stats.prototype.hitShot = function() {
 Stats.prototype.wonGame = function() {
 	this.gamesPlayed++;
 	this.gamesWon++;
-	// ga('send', 'event', 'gameOver', 'win', this.uuid);
+	ga('send', 'event', 'gameOver', 'win', this.uuid);
 };
 Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
-	// ga('send', 'event', 'gameOver', 'lose', this.uuid);
+	ga('send', 'event', 'gameOver', 'lose', this.uuid);
 };
 // Saves the game statistics to localstorage, also uploads where the user placed
 // their ships to Google Analytics so that in the future I'll be able to see
@@ -105,7 +105,7 @@ Stats.prototype.syncStats = function() {
 			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ';\n';
 		}
 	}
-	// ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
+	ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
 };
 // Updates the sidebar display with the current statistics
 Stats.prototype.updateStatsSidebar = function() {
