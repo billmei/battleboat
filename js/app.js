@@ -6,6 +6,8 @@
 // Thanks to Nick Berry for the inspiration
 // http://www.datagenetics.com/blog/december32011/
 
+// TODO: Remove the prompt to ask for help for collecting data from battleboat 
+// TODO: Change the `alert()`s to CSS transition for a win screen
 // TODO: Gather data from human playsessions to determine the most common
 //       starting positions
 // TODO: Use a markov-chain to determine what first few cells the AI should start
@@ -27,7 +29,6 @@
 //       (scale a color via max and 0). The toggle only works once the user has
 //       finished placing their ships, or she can cheat easily by placing her ships
 //       outside the regions with the highest probability.
-// TODO: Change the `alert()`s to CSS transition for a win screen
 
 console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
 	"hack the Stats object, I'm using Google Analytics to collect info about " +
@@ -180,9 +181,6 @@ function Game(size) {
 }
 Game.size = 10; // Default grid size is 10x10
 Game.gameOver = false;
-// Placement variables
-Game.readyToPlay = false;
-Game.placingOnGrid = false;
 // Checks if the game is won, and if it is, re-initializes the game
 Game.prototype.checkIfWon = function() {
 	if (this.computerFleet.allShipsSunk()) {
@@ -245,9 +243,8 @@ Game.prototype.shootListener = function(e) {
 	var x = parseInt(e.target.getAttribute('data-x'), 10);
 	var y = parseInt(e.target.getAttribute('data-y'), 10);
 	var result = null;
-	if (Game.readyToPlay) {
-		// I couldn't figure out how to avoid referencing the global variable here
-		result = mainGame.shoot(x, y, CONST.COMPUTER_PLAYER);
+	if (this.readyToPlay) {
+		result = this.shoot(x, y, CONST.COMPUTER_PLAYER);
 
 		// Remove the tutorial arrow
 		if (gameTutorial.showTutorial) {
@@ -262,7 +259,7 @@ Game.prototype.shootListener = function(e) {
 		}
 		// The AI shoots iff the player clicks on a cell that he/she hasn't
 		// already clicked on yet
-		mainGame.robot.shoot();
+		this.robot.shoot();
 	} else {
 		Game.gameOver = false;
 	}
@@ -286,29 +283,29 @@ Game.prototype.rosterListener = function(e) {
 	Game.placeShipType = e.target.getAttribute('id');
 	document.getElementById(Game.placeShipType).setAttribute('class', 'placing');
 	Game.placeShipDirection = parseInt(document.getElementById('rotate-button').getAttribute('data-direction'), 10);
-	Game.placingOnGrid = true;
+	this.placingOnGrid = true;
 };
 // Creates click event listeners on the human player's grid to handle
 // ship placement after the user has selected a ship name
 Game.prototype.placementListener = function(e) {
-	if (Game.placingOnGrid) {
+	if (this.placingOnGrid) {
 		// Extract coordinates from event listener
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 		
 		// Don't screw up the direction if the user tries to place again.
-		var successful = mainGame.humanFleet.placeShip(x, y, Game.placeShipDirection, Game.placeShipType);
+		var successful = this.humanFleet.placeShip(x, y, Game.placeShipDirection, Game.placeShipType);
 		if (successful) {
 			// Done placing this ship
-			mainGame.endPlacing(Game.placeShipType);
+			this.endPlacing(Game.placeShipType);
 
 			// Remove the helper arrow
 			if (gameTutorial.currentStep === 2) {
 				gameTutorial.nextStep();
 			}
 
-			Game.placingOnGrid = false;
-			if (mainGame.areAllShipsPlaced()) {
+			this.placingOnGrid = false;
+			if (this.areAllShipsPlaced()) {
 				var el = document.getElementById('rotate-button');
 				el.addEventListener(transitionEndEventName(),(function(){
 					el.setAttribute('class', 'hidden');
@@ -327,11 +324,11 @@ Game.prototype.placementListener = function(e) {
 // human player's grid to draw a phantom ship implying that the user
 // is allowed to place a ship there
 Game.prototype.placementMouseover = function(e) {
-	if (Game.placingOnGrid) {
+	if (this.placingOnGrid) {
 		var x = parseInt(e.target.getAttribute('data-x'), 10);
 		var y = parseInt(e.target.getAttribute('data-y'), 10);
 		var classes;
-		var fleetRoster = mainGame.humanFleet.fleetRoster;
+		var fleetRoster = this.humanFleet.fleetRoster;
 
 		for (var i = 0; i < fleetRoster.length; i++) {
 			var shipType = fleetRoster[i].type;
@@ -358,7 +355,7 @@ Game.prototype.placementMouseover = function(e) {
 // Creates mouseout event listeners that un-draws the phantom ship
 // on the human player's grid as the user hovers over a different cell
 Game.prototype.placementMouseout = function(e) {
-	if (Game.placingOnGrid) {
+	if (this.placingOnGrid) {
 		for (var j = 0; j < Game.placeShipCoords.length; j++) {
 			var el = document.querySelector('.grid-cell-' + Game.placeShipCoords[j].x + '-' + Game.placeShipCoords[j].y);
 			classes = el.getAttribute('class');
@@ -388,7 +385,7 @@ Game.prototype.startGame = function(e) {
 	var fn = function() {el.setAttribute('class', 'hidden');};
 	el.addEventListener(transitionEndEventName(),fn,false);
 	el.setAttribute('class', 'invisible');
-	Game.readyToPlay = true;
+	this.readyToPlay = true;
 
 	// Advanced the tutorial step
 	if (gameTutorial.currentStep === 3) {
@@ -476,8 +473,8 @@ Game.prototype.init = function() {
 
 	// Reset game variables
 	this.shotsTaken = 0;
-	Game.readyToPlay = false;
-	Game.placingOnGrid = false;
+	this.readyToPlay = false;
+	this.placingOnGrid = false;
 	Game.placeShipDirection = 0;
 	Game.placeShipType = '';
 	Game.placeShipCoords = [];
@@ -488,26 +485,26 @@ Game.prototype.init = function() {
 	// Only add this listener to the computer's grid
 	var computerCells = document.querySelector('.computer-player').childNodes;
 	for (var j = 0; j < computerCells.length; j++) {
-		computerCells[j].addEventListener('click', this.shootListener, false);
+		computerCells[j].addEventListener('click', this.shootListener.bind(this), false);
 	}
 
 	// Add a click listener to the roster	
 	var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
 	for (var i = 0; i < playerRoster.length; i++) {
-		playerRoster[i].addEventListener('click', this.rosterListener, false);
+		playerRoster[i].addEventListener('click', this.rosterListener.bind(this), false);
 	}
 
 	// Add a click listener to the human player's grid while placing
 	var humanCells = document.querySelector('.human-player').childNodes;
 	for (var k = 0; k < humanCells.length; k++) {
-		humanCells[k].addEventListener('click', this.placementListener, false);
-		humanCells[k].addEventListener('mouseover', this.placementMouseover, false);
-		humanCells[k].addEventListener('mouseout', this.placementMouseout, false);
+		humanCells[k].addEventListener('click', this.placementListener.bind(this), false);
+		humanCells[k].addEventListener('mouseover', this.placementMouseover.bind(this), false);
+		humanCells[k].addEventListener('mouseout', this.placementMouseout.bind(this), false);
 	}
 
-	document.getElementById('rotate-button').addEventListener('click', this.toggleRotation, false);
-	document.getElementById('start-game').addEventListener('click', this.startGame, false);
-	document.getElementById('reset-stats').addEventListener('click', Game.stats.resetStats, false);
+	document.getElementById('rotate-button').addEventListener('click', this.toggleRotation.bind(this), false);
+	document.getElementById('start-game').addEventListener('click', this.startGame.bind(this), false);
+	document.getElementById('reset-stats').addEventListener('click', Game.stats.resetStats.bind(this), false);
 
 	this.computerFleet.placeShipsRandomly();
 };
@@ -1062,7 +1059,7 @@ var mainGame = new Game(10);
 
 })();
 
-// IndexOf workaround for IE browsers that don't support it
+// Array.prototype.indexOf workaround for IE browsers that don't support it
 // From MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
 if (!Array.prototype.indexOf) {
 	Array.prototype.indexOf = function (searchElement, fromIndex) {
@@ -1126,6 +1123,33 @@ if (!Array.prototype.indexOf) {
 			k++;
 		}
 		return -1;
+	};
+}
+
+// Function.prototype.bind() workaround for IE browsers that don't support it.
+// From MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
+if (!Function.prototype.bind) {
+	Function.prototype.bind = function (oThis) {
+		if (typeof this !== "function") {
+			// closest thing possible to the ECMAScript 5
+			// internal IsCallable function
+			throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+		}
+
+		var aArgs = Array.prototype.slice.call(arguments, 1), 
+				fToBind = this, 
+				fNOP = function () {},
+				fBound = function () {
+					return fToBind.apply(this instanceof fNOP && oThis
+								 ? this
+								 : oThis,
+								 aArgs.concat(Array.prototype.slice.call(arguments)));
+				};
+
+		fNOP.prototype = this.prototype;
+		fBound.prototype = new fNOP();
+
+		return fBound;
 	};
 }
 
