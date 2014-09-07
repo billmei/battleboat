@@ -901,41 +901,54 @@ function AI(gameObject) {
 	this.updateProbs();
 }
 AI.PROB_WEIGHT = 5000; // arbitrarily big number
-AI.PROB_LENGTH = 4; // number of cells to look at in probability randomization
-
+AI.PROB_DECAY = 25; // the lowest max probability before switching strategies
+AI.EDGE_CELLS = [ // Pattern of edge cells for the AI
+	{'x': 9, 'y': 5, 'prob': 9},
+	{'x': 0, 'y': 4, 'prob': 9},
+	{'x': 5, 'y': 9, 'prob': 9},
+	{'x': 4, 'y': 0, 'prob': 9},
+	{'x': 0, 'y': 9, 'prob': 9},
+	{'x': 9, 'y': 0, 'prob': 9},
+	{'x': 9, 'y': 9, 'prob': 9},
+	{'x': 0, 'y': 0, 'prob': 9},
+];
+AI.FIRST_CELLS = [ // Pattern of first cells for the AI
+	{'x': 7, 'y': 3, 'prob': 29},
+	{'x': 6, 'y': 2, 'prob': 29},
+	{'x': 3, 'y': 7, 'prob': 29},
+	{'x': 2, 'y': 6, 'prob': 29},
+	{'x': 6, 'y': 6, 'prob': 32},
+	{'x': 3, 'y': 3, 'prob': 32},
+	{'x': 5, 'y': 5, 'prob': 34},
+	{'x': 4, 'y': 4, 'prob': 34}
+];
 // Scouts the grid based on max probability, and shoots at the cell
 // that has the highest probability of containing a ship
 AI.prototype.shoot = function() {
 	var maxProbability = 0;
-	var maxProbCoords = [];
+	var maxProbCoords;
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
 			if (this.probGrid[x][y] > maxProbability) {
 				maxProbability = this.probGrid[x][y];
-				maxProbCoords.push({'x': x, 'y': y, 'prob': this.probGrid[x][y]})
-			} else if (this.probGrid[x][y] === maxProbability ||
-				this.probGrid[x][y] > maxProbability - AI.PROB_LENGTH) {
-				maxProbCoords.push({'x': x, 'y': y, 'prob': this.probGrid[x][y]})
+				maxProbCoords = {'x': x, 'y': y, 'prob': this.probGrid[x][y]}
 			}
 		}
 	}
-	maxProbCoords.sort(function(a, b){
-		if (a.prob < b.prob) {
-			return -1;
-		} else if (a.prob > b.prob) {
-			return 1;
-		} else if (a.prob === b.prob) {
-			return 0;
-		} else {
-			return null;
+
+	// Always target the largest cell if there is a hit cell on the grid
+	if (maxProbCoords.prob < AI.PROB_WEIGHT && maxProbCoords.prob > AI.PROB_DECAY){
+		// Otherwise, fire the first few shots randomly within the top max probabilities
+		if (AI.FIRST_CELLS.length > 0) {
+			var idx = Math.floor(Math.random() * AI.FIRST_CELLS.length);
+			maxProbCoords = AI.FIRST_CELLS[idx];
+			AI.FIRST_CELLS.splice(idx, 1);
+		} else if (AI.EDGE_CELLS.length > 0) {
+			var idx = Math.floor(Math.random() * AI.EDGE_CELLS.length);
+			maxProbCoords = AI.EDGE_CELLS[idx];
+			AI.EDGE_CELLS.splice(idx, 1);
 		}
-	});
-
-	console.log(maxProbCoords)
-
-	// Randomly select a coordinate of the maximum probability rather than always
-	// picking the one to the top-left
-	maxProbCoords = maxProbCoords[Math.floor(Math.random() * maxProbCoords.length)];
+	}
 
 	var result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, CONST.HUMAN_PLAYER);
 	
@@ -993,11 +1006,11 @@ AI.prototype.updateProbs = function() {
 					coords = roster[i].getAllShipCells();
 					if (this.passesThroughHitCell(coords)) {
 						for (var j = 0; j < coords.length; j++) {
-							this.probGrid[].prob += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
+							this.probGrid[coords[j].x][coords[j].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
 						}
 					} else {
 						for (var _j = 0; _j < coords.length; _j++) {
-							this.probGrid[].prob++;
+							this.probGrid[coords[_j].x][coords[_j].y]++;
 						}
 					}
 				}
@@ -1006,11 +1019,11 @@ AI.prototype.updateProbs = function() {
 					coords = roster[i].getAllShipCells();
 					if (this.passesThroughHitCell(coords)) {
 						for (var k = 0; k < coords.length; k++) {
-							this.probGrid[].prob += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
+							this.probGrid[coords[k].x][coords[k].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
 						}
 					} else {
 						for (var _k = 0; _k < coords.length; _k++) {
-							this.probGrid[].prob++;
+							this.probGrid[coords[_k].x][coords[_k].y]++;
 						}
 					}
 				}
@@ -1018,7 +1031,7 @@ AI.prototype.updateProbs = function() {
 				// Set hit cells to probability zero so the AI doesn't
 				// target cells that are already hit
 				if (this.virtualGrid.cells[x][y] === CONST.TYPE_HIT) {
-					this.probGrid[y + x % 10].prob = 0;
+					this.probGrid[x][y] = 0;
 				}
 			}
 		}
@@ -1027,15 +1040,19 @@ AI.prototype.updateProbs = function() {
 // Initializes the probability grid for targeting
 AI.prototype.initProbs = function() {
 	for (var x = 0; x < Game.size; x++) {
+		var row = [];
+		this.probGrid[x] = row;
 		for (var y = 0; y < Game.size; y++) {
-			this.probGrid.push({'x': x, 'y': y, 'prob': 0});
+			row.push(0);
 		}
 	}
 };
 // Resets the probability grid to all 0.
 AI.prototype.resetProbs = function() {
-	for (var i = 0; i < this.probGrid.length; i++) {
-		this.probGrid[i].prob = 0;
+	for (var x = 0; x < Game.size; x++) {
+		for (var y = 0; y < Game.size; y++) {
+			this.probGrid[x][y] = 0;
+		}
 	}
 };
 AI.prototype.metagame = function() {
