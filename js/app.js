@@ -18,7 +18,9 @@
 console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
 	"hack the Stats object, I'm using Google Analytics to collect info about " +
 	"the AI's win/loss percentage in order to improve the bot, so if you do " +
-	"look around, I kindly ask that you don't give it bad data. Thanks.");
+	"look around, I kindly ask that you don't give it bad data. Thanks :)");
+console.log("Also, if you want to try stuff out, run setDebug(true) before " +
+	"doing anything. You'll also get access to some cool features.");
 
 // Global Constants
 var CONST = {};
@@ -51,6 +53,9 @@ function Stats(){
 	this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed'), 10) || 0;
 	this.gamesWon = parseInt(localStorage.getItem('gamesWon'), 10) || 0;
 	this.uuid = localStorage.getItem('uuid') || this.createUUID();
+	if (DEBUG_MODE) {
+		this.skipCurrentGame = true;
+	}
 }
 Stats.prototype.incrementShots = function() {
 	this.shotsTaken++;
@@ -440,6 +445,9 @@ Game.prototype.resetRosterSidebar = function() {
 	}
 	document.getElementById('rotate-button').removeAttribute('class');
 	document.getElementById('start-game').setAttribute('class', 'hidden');
+	if (DEBUG_MODE) {
+		document.getElementById('place-randomly').removeAttribute('class');
+	}
 };
 // Generates the HTML divs for the grid for both players
 Game.prototype.createGrid = function() {
@@ -504,13 +512,11 @@ Game.prototype.init = function() {
 	}
 
 	var rotateButton = document.getElementById('rotate-button');
-	rotateButton.self = this;
 	rotateButton.addEventListener('click', this.toggleRotation, false);
 	var startButton = document.getElementById('start-game');
 	startButton.self = this;
 	startButton.addEventListener('click', this.startGame, false);
 	var resetButton = document.getElementById('reset-stats');
-	resetButton.self = this;
 	resetButton.addEventListener('click', Game.stats.resetStats, false);
 
 	this.computerFleet.placeShipsRandomly();
@@ -1188,5 +1194,12 @@ function transitionEndEventName() {
 
 // Returns a random number between min (inclusive) and max (exclusive)
 function getRandom(min, max) {
-  return Math.random() * (max - min) + min;
+	return Math.random() * (max - min) + min;
+}
+
+// Toggles on or off DEBUG_MODE
+function setDebug(val) {
+	DEBUG_MODE = val;
+	localStorage.setItem('DEBUG_MODE', val);
+	window.location.reload();
 }
