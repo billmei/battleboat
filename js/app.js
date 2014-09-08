@@ -10,12 +10,6 @@
 // TODO: Change the `alert()`s to CSS transition for a win screen
 // TODO: Gather data from human playsessions to determine the most common
 //       starting positions
-// TODO: Normalize the probability grid by decreasing weight exponentially as
-//       the probability gets further away from the max probability. Instead of
-//       telling the AI to always shoot at the cell with the max probability,
-//       make it choose cells based on its weighted probability. Therefore, it will
-//       be possible (though not likely) for the AI to go for a non-max probability
-//       cell, in order to introduce some unpredictability for the human player.
 // TODO: Add a toggle that visualizes the probability grid via heatmap
 //       (scale a color via max and 0). The toggle only works once the user has
 //       finished placing their ships, or she can cheat easily by placing her ships
@@ -67,11 +61,15 @@ Stats.prototype.hitShot = function() {
 Stats.prototype.wonGame = function() {
 	this.gamesPlayed++;
 	this.gamesWon++;
-	ga('send', 'event', 'gameOver', 'win', this.uuid);
+	if (!DEBUG_MODE) {
+		ga('send', 'event', 'gameOver', 'win', this.uuid);
+	}
 };
 Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
-	ga('send', 'event', 'gameOver', 'lose', this.uuid);
+	if (!DEBUG_MODE) {
+		ga('send', 'event', 'gameOver', 'lose', this.uuid);
+	}
 };
 // Saves the game statistics to localstorage, also uploads where the user placed
 // their ships to Google Analytics so that in the future I'll be able to see
@@ -97,7 +95,10 @@ Stats.prototype.syncStats = function() {
 			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ';\n';
 		}
 	}
-	ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
+
+	if (!DEBUG_MODE) {
+		ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
+	}
 };
 // Updates the sidebar display with the current statistics
 Stats.prototype.updateStatsSidebar = function() {
@@ -208,7 +209,7 @@ Game.prototype.shoot = function(x, y, targetPlayer) {
 	} else {
 		// Should never be called
 		console.log("There was an error trying to find the correct player to target");
-		}
+	}
 
 	if (targetGrid.isDamagedShip(x, y)) {
 		return null;
@@ -902,51 +903,50 @@ function AI(gameObject) {
 }
 AI.PROB_WEIGHT = 5000; // arbitrarily big number
 AI.PROB_DECAY = 25; // the lowest max probability before switching strategies
-AI.EDGE_CELLS = [ // Pattern of edge cells for the AI
-	{'x': 9, 'y': 5, 'prob': 9},
-	{'x': 0, 'y': 4, 'prob': 9},
-	{'x': 5, 'y': 9, 'prob': 9},
-	{'x': 4, 'y': 0, 'prob': 9},
-	{'x': 0, 'y': 9, 'prob': 9},
-	{'x': 9, 'y': 0, 'prob': 9},
-	{'x': 9, 'y': 9, 'prob': 9},
-	{'x': 0, 'y': 0, 'prob': 9},
-];
-AI.FIRST_CELLS = [ // Pattern of first cells for the AI
-	{'x': 7, 'y': 3, 'prob': 29},
-	{'x': 6, 'y': 2, 'prob': 29},
-	{'x': 3, 'y': 7, 'prob': 29},
-	{'x': 2, 'y': 6, 'prob': 29},
-	{'x': 6, 'y': 6, 'prob': 32},
-	{'x': 3, 'y': 3, 'prob': 32},
-	{'x': 5, 'y': 5, 'prob': 34},
-	{'x': 4, 'y': 4, 'prob': 34}
+// how much weight to give to the opening book's middle cells
+AI.WEIGHT_MIDDLE_MIN = 10;
+AI.WEIGHT_MIDDLE_MAX = 20;
+// how much weight to give to the opening book's edge cells
+AI.WEIGHT_EDGE_MIN = 10;
+AI.WEIGHT_EDGE_MAX = 20;
+AI.OPENING_BOOK = [ // Pattern of THE first cells for the AI to target
+	{'x': 7, 'y': 3, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 6, 'y': 2, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 3, 'y': 7, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 2, 'y': 6, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 6, 'y': 6, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 3, 'y': 3, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 5, 'y': 5, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 4, 'y': 4, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
+	{'x': 9, 'y': 5, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
+	{'x': 0, 'y': 4, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
+	{'x': 5, 'y': 9, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
+	{'x': 4, 'y': 0, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
+	{'x': 0, 'y': 9, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
+	{'x': 9, 'y': 0, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
+	{'x': 9, 'y': 9, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
+	{'x': 0, 'y': 0, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)}
 ];
 // Scouts the grid based on max probability, and shoots at the cell
 // that has the highest probability of containing a ship
 AI.prototype.shoot = function() {
 	var maxProbability = 0;
 	var maxProbCoords;
+	
+	// Add the AI's opening book to the probability grid
+	for (var i = 0; i < AI.OPENING_BOOK.length; i++) {
+		var cell = AI.OPENING_BOOK[i];
+		if (this.probGrid[cell.x][cell.y] !== 0) {
+			this.probGrid[cell.x][cell.y] += cell.prob;
+		}
+	};
+
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
 			if (this.probGrid[x][y] > maxProbability) {
 				maxProbability = this.probGrid[x][y];
 				maxProbCoords = {'x': x, 'y': y, 'prob': this.probGrid[x][y]}
 			}
-		}
-	}
-
-	// Always target the largest cell if there is a hit cell on the grid
-	if (maxProbCoords.prob < AI.PROB_WEIGHT && maxProbCoords.prob > AI.PROB_DECAY){
-		// Otherwise, fire the first few shots randomly within the top max probabilities
-		if (AI.FIRST_CELLS.length > 0) {
-			var idx = Math.floor(Math.random() * AI.FIRST_CELLS.length);
-			maxProbCoords = AI.FIRST_CELLS[idx];
-			AI.FIRST_CELLS.splice(idx, 1);
-		} else if (AI.EDGE_CELLS.length > 0) {
-			var idx = Math.floor(Math.random() * AI.EDGE_CELLS.length);
-			maxProbCoords = AI.EDGE_CELLS[idx];
-			AI.EDGE_CELLS.splice(idx, 1);
 		}
 	}
 
@@ -1061,7 +1061,7 @@ AI.prototype.metagame = function() {
 	// Proximity of hit cells to each other
 	// Edit the probability grid by multiplying each cell with a new probability weight (e.g. 0.4, or 3). Set this as a CONST and make 1-CONST the inverse for decreasing, or 2*CONST for increasing
 };
-// finds a human ship by coordinates
+// Finds a human ship by coordinates
 // Returns Ship
 AI.prototype.findHumanShip = function(x, y) {
 	return this.gameObject.humanFleet.findShipByCoords(x, y);
@@ -1184,4 +1184,9 @@ function transitionEndEventName() {
 			return transitions[i];
 		}
 	}
+}
+
+// Returns a random number between min (inclusive) and max (exclusive)
+function getRandom(min, max) {
+  return Math.random() * (max - min) + min;
 }
