@@ -908,42 +908,51 @@ function AI(gameObject) {
 	this.updateProbs();
 }
 AI.PROB_WEIGHT = 5000; // arbitrarily big number
-AI.PROB_DECAY = 25; // the lowest max probability before switching strategies
-// how much weight to give to the opening book's middle cells
-AI.WEIGHT_MIDDLE_MIN = 10;
-AI.WEIGHT_MIDDLE_MAX = 20;
-// how much weight to give to the opening book's edge cells
-AI.WEIGHT_EDGE_MIN = 10;
-AI.WEIGHT_EDGE_MAX = 20;
-AI.OPENING_BOOK = [ // Pattern of THE first cells for the AI to target
-	{'x': 7, 'y': 3, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 6, 'y': 2, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 3, 'y': 7, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 2, 'y': 6, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 6, 'y': 6, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 3, 'y': 3, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 5, 'y': 5, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 4, 'y': 4, 'prob': getRandom(AI.WEIGHT_MIDDLE_MIN, AI.WEIGHT_MIDDLE_MAX)},
-	{'x': 9, 'y': 5, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
-	{'x': 0, 'y': 4, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
-	{'x': 5, 'y': 9, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
-	{'x': 4, 'y': 0, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
-	{'x': 0, 'y': 9, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
-	{'x': 9, 'y': 0, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
-	{'x': 9, 'y': 9, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)},
-	{'x': 0, 'y': 0, 'prob': getRandom(AI.WEIGHT_EDGE_MIN, AI.WEIGHT_EDGE_MAX)}
+// how much weight to give to the opening book's high probability cells
+AI.OPEN_HIGH_MIN = 20;
+AI.OPEN_HIGH_MAX = 30;
+// how much weight to give to the opening book's medium probability cells
+AI.OPEN_MED_MIN = 15;
+AI.OPEN_MED_MAX = 25;
+// how much weight to give to the opening book's low probability cells
+AI.OPEN_LOW_MIN = 10;
+AI.OPEN_LOW_MAX = 20;
+// Amount of randomness when selecting between cells of equal probability
+AI.RANDOMNESS = 0.1;
+// AI's opening book.
+// This is the pattern of the first cells for the AI to target
+AI.OPENINGS = [
+	{'x': 7, 'y': 3, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	{'x': 6, 'y': 2, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	{'x': 3, 'y': 7, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	{'x': 2, 'y': 6, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	{'x': 6, 'y': 6, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	{'x': 3, 'y': 3, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	{'x': 5, 'y': 5, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	{'x': 4, 'y': 4, 'weight': getRandom(AI.OPEN_LOW_MIN, AI.OPEN_LOW_MAX)},
+	// {'x': 9, 'y': 5, 'weight': getRandom(AI.OPEN_MED_MIN, AI.OPEN_MED_MAX)},
+	// {'x': 0, 'y': 4, 'weight': getRandom(AI.OPEN_MED_MIN, AI.OPEN_MED_MAX)},
+	// {'x': 5, 'y': 9, 'weight': getRandom(AI.OPEN_MED_MIN, AI.OPEN_MED_MAX)},
+	// {'x': 4, 'y': 0, 'weight': getRandom(AI.OPEN_MED_MIN, AI.OPEN_MED_MAX)},
+	{'x': 0, 'y': 8, 'weight': getRandom(AI.OPEN_MED_MIN, AI.OPEN_MED_MAX)},
+	{'x': 1, 'y': 9, 'weight': getRandom(AI.OPEN_HIGH_MIN, AI.OPEN_HIGH_MAX)},
+	{'x': 8, 'y': 0, 'weight': getRandom(AI.OPEN_MED_MIN, AI.OPEN_MED_MAX)},
+	{'x': 9, 'y': 1, 'weight': getRandom(AI.OPEN_HIGH_MIN, AI.OPEN_HIGH_MAX)},
+	{'x': 9, 'y': 9, 'weight': getRandom(AI.OPEN_HIGH_MIN, AI.OPEN_HIGH_MAX)},
+	{'x': 0, 'y': 0, 'weight': getRandom(AI.OPEN_HIGH_MIN, AI.OPEN_HIGH_MAX)}
 ];
 // Scouts the grid based on max probability, and shoots at the cell
 // that has the highest probability of containing a ship
 AI.prototype.shoot = function() {
 	var maxProbability = 0;
 	var maxProbCoords;
+	var maxProbs = [];
 	
 	// Add the AI's opening book to the probability grid
-	for (var i = 0; i < AI.OPENING_BOOK.length; i++) {
-		var cell = AI.OPENING_BOOK[i];
+	for (var i = 0; i < AI.OPENINGS.length; i++) {
+		var cell = AI.OPENINGS[i];
 		if (this.probGrid[cell.x][cell.y] !== 0) {
-			this.probGrid[cell.x][cell.y] += cell.prob;
+			this.probGrid[cell.x][cell.y] += cell.weight;
 		}
 	};
 
@@ -951,10 +960,16 @@ AI.prototype.shoot = function() {
 		for (var y = 0; y < Game.size; y++) {
 			if (this.probGrid[x][y] > maxProbability) {
 				maxProbability = this.probGrid[x][y];
-				maxProbCoords = {'x': x, 'y': y, 'prob': this.probGrid[x][y]}
+				maxProbs = [{'x': x, 'y': y}]; // Replace the array
+			} else if (this.probGrid[x][y] === maxProbability) {
+				maxProbs.push({'x': x, 'y': y});
 			}
 		}
 	}
+
+	maxProbCoords = Math.random() < AI.RANDOMNESS ?
+	maxProbs[Math.floor(Math.random() * maxProbs.length)] :
+	maxProbs[0];
 
 	var result = this.gameObject.shoot(maxProbCoords.x, maxProbCoords.y, CONST.HUMAN_PLAYER);
 	
@@ -1004,12 +1019,25 @@ AI.prototype.updateProbs = function() {
 	// so that the AI tries to completely sink the ship before moving on.
 
 	// TODO: Think about a more efficient implementation
-	for (var i = 0; i < roster.length; i++) {
+	for (var k = 0; k < roster.length; k++) {
 		for (var x = 0; x < Game.size; x++) {
 			for (var y = 0; y < Game.size; y++) {
-				if (roster[i].isLegal(x, y, Ship.DIRECTION_VERTICAL)) {
-					roster[i].create(x, y, Ship.DIRECTION_VERTICAL, true);
-					coords = roster[i].getAllShipCells();
+				if (roster[k].isLegal(x, y, Ship.DIRECTION_VERTICAL)) {
+					roster[k].create(x, y, Ship.DIRECTION_VERTICAL, true);
+					coords = roster[k].getAllShipCells();
+					if (this.passesThroughHitCell(coords)) {
+						for (var i = 0; i < coords.length; i++) {
+							this.probGrid[coords[i].x][coords[i].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
+						}
+					} else {
+						for (var _i = 0; _i < coords.length; _i++) {
+							this.probGrid[coords[_i].x][coords[_i].y]++;
+						}
+					}
+				}
+				if (roster[k].isLegal(x, y, Ship.DIRECTION_HORIZONTAL)) {
+					roster[k].create(x, y, Ship.DIRECTION_HORIZONTAL, true);
+					coords = roster[k].getAllShipCells();
 					if (this.passesThroughHitCell(coords)) {
 						for (var j = 0; j < coords.length; j++) {
 							this.probGrid[coords[j].x][coords[j].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
@@ -1017,19 +1045,6 @@ AI.prototype.updateProbs = function() {
 					} else {
 						for (var _j = 0; _j < coords.length; _j++) {
 							this.probGrid[coords[_j].x][coords[_j].y]++;
-						}
-					}
-				}
-				if (roster[i].isLegal(x, y, Ship.DIRECTION_HORIZONTAL)) {
-					roster[i].create(x, y, Ship.DIRECTION_HORIZONTAL, true);
-					coords = roster[i].getAllShipCells();
-					if (this.passesThroughHitCell(coords)) {
-						for (var k = 0; k < coords.length; k++) {
-							this.probGrid[coords[k].x][coords[k].y] += AI.PROB_WEIGHT * this.numHitCellsCovered(coords);
-						}
-					} else {
-						for (var _k = 0; _k < coords.length; _k++) {
-							this.probGrid[coords[_k].x][coords[_k].y]++;
 						}
 					}
 				}
@@ -1103,7 +1118,6 @@ var gameTutorial = new Tutorial();
 var mainGame = new Game(10);
 
 })();
-
 
 // Array.prototype.indexOf workaround for IE browsers that don't support it
 // From MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
