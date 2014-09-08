@@ -51,6 +51,20 @@ button {
 			background-color: #FFCE8E;
 		}
 
+#prefetch1 {
+	background: url('../img/cross-icon.svg');
+}
+#prefetch2 {
+	background: url('../img/cross-icon.png');
+}
+#prefetch3 {
+	background: url('../img/crosshair.png');
+}
+.prefetch {
+	background-repeat: no-repeat;
+	background-position: -9999px -9999px;
+}
+
 .tagline {
 	margin-bottom: 2em;
 }
