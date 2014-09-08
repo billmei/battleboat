@@ -15,12 +15,14 @@
 //       finished placing their ships, or she can cheat easily by placing her ships
 //       outside the regions with the highest probability.
 
-console.log("Hi! Thanks for checking out this game. Please be nice and don't " +
+console.log("%cHi! Thanks for checking out this game.%c Please be nice and don't " +
 	"hack the Stats object, I'm using Google Analytics to collect info about " +
 	"the AI's win/loss percentage in order to improve the bot, so if you do " +
-	"look around, I kindly ask that you don't give it bad data. Thanks :)");
-console.log("Also, if you want to try stuff out, run setDebug(true) before " +
-	"doing anything. You'll also get access to some cool features.");
+	"look around, I kindly ask that you don't give it bad data. Thanks :)",
+	"font-weight: bold; font-family: Tahoma, Helvetica, Arial, sans-serif;", "");
+console.log("Also, if you want to try stuff out, run %csetDebug(true);%c in the " +
+	"console before doing anything. You'll also get access to some cool features.",
+	"background: #000; color: #0f0", "");
 
 // Global Constants
 var CONST = {};
@@ -397,6 +399,14 @@ Game.prototype.startGame = function(e) {
 
 	el.removeEventListener(transitionEndEventName(),fn,false);
 };
+// Debugging function used to place all ships and just start
+Game.prototype.placeRandomly = function(e){
+	e.target.self.humanFleet.placeShipsRandomly();
+	e.target.self.readyToPlay = true
+	document.getElementById('sidebar-left').setAttribute('class', 'hidden');
+	this.setAttribute('class', 'hidden');
+	e.target.removeEventListener(e.type, arguments.callee);
+};
 // Ends placing the current ship
 Game.prototype.endPlacing = function(shipType) {
 	document.getElementById(shipType).setAttribute('class', 'placed');
@@ -464,7 +474,6 @@ Game.prototype.createGrid = function() {
 			}
 		}
 	}
-	
 };
 // Initializes the Game. Also resets the game if previously initialized
 Game.prototype.init = function() {
@@ -518,7 +527,9 @@ Game.prototype.init = function() {
 	startButton.addEventListener('click', this.startGame, false);
 	var resetButton = document.getElementById('reset-stats');
 	resetButton.addEventListener('click', Game.stats.resetStats, false);
-
+	var randomButton = document.getElementById('place-randomly');
+	randomButton.self = this;
+	randomButton.addEventListener('click', this.placeRandomly, false);
 	this.computerFleet.placeShipsRandomly();
 };
 
@@ -635,6 +646,7 @@ Fleet.prototype.placeShip = function(x, y, direction, shipType) {
 // Places ships randomly on the board
 // TODO: Avoid placing ships too close to each other
 Fleet.prototype.placeShipsRandomly = function() {
+	var shipCoords;
 	for (var i = 0; i < this.fleetRoster.length; i++) {
 		var illegalPlacement = true;
 		while (illegalPlacement) {
@@ -643,9 +655,15 @@ Fleet.prototype.placeShipsRandomly = function() {
 			var randomDirection = Math.floor(2*Math.random());
 			if (this.fleetRoster[i].isLegal(randomX, randomY, randomDirection)) {
 				this.fleetRoster[i].create(randomX, randomY, randomDirection, false);
+				shipCoords = this.fleetRoster[i].getAllShipCells();
 				illegalPlacement = false;
 			} else {
 				continue;
+			}
+		}
+		if (this.player === CONST.HUMAN_PLAYER) {
+			for (var j = 0; j < shipCoords.length; j++) {
+				this.playerGrid.updateCell(shipCoords[j].x, shipCoords[j].y, 'ship', this.player);
 			}
 		}
 	}
@@ -1215,5 +1233,6 @@ function getRandom(min, max) {
 function setDebug(val) {
 	DEBUG_MODE = val;
 	localStorage.setItem('DEBUG_MODE', val);
+	localStorage.setItem('showTutorial', 'false');
 	window.location.reload();
 }

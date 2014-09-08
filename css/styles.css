@@ -39,15 +39,15 @@ button {
 	button:active {
 		background-color: #99C2E1;
 	}
-	#start-game {
+	#start-game, #place-randomly {
 		position: relative;
 		color: #FFFFFF;
 		background-color: #FF9200;
 	}
-		#start-game:hover {
+		#start-game:hover, #place-randomly:hover {
 			background-color: #FFB655;
 		}
-		#start-game:active {
+		#start-game:active, #place-randomly:active {
 			background-color: #FFCE8E;
 		}
 
