@@ -6,10 +6,6 @@
 // Thanks to Nick Berry for the inspiration
 // http://www.datagenetics.com/blog/december32011/
 
-// TODO: Remove the prompt to ask for help for collecting data from battleboat 
-// TODO: Change the `alert()`s to CSS transition for a win screen
-// TODO: Gather data from human playsessions to determine the most common
-//       starting positions
 // TODO: Add a toggle that visualizes the probability grid via heatmap
 //       (scale a color via max and 0). The toggle only works once the user has
 //       finished placing their ships, or she can cheat easily by placing her ships
@@ -22,7 +18,7 @@ console.log("%cHi! Thanks for checking out this game.%c Please be nice and don't
 	"font-weight: bold; font-family: Tahoma, Helvetica, Arial, sans-serif;", "");
 console.log("Also, if you want to try stuff out, run %csetDebug(true);%c in the " +
 	"console before doing anything. You'll also get access to some cool features.",
-	"background: #000; color: #0f0", "");
+	"background: #000; color: #0f0; padding: 2px 5px; border-radius: 2px;", "");
 
 // Global Constants
 var CONST = {};
@@ -183,23 +179,19 @@ Game.gameOver = false;
 // Checks if the game is won, and if it is, re-initializes the game
 Game.prototype.checkIfWon = function() {
 	if (this.computerFleet.allShipsSunk()) {
-		alert('Congratulations, you win!\n\nHelp me improve the AI, try ' +
-			'playing again? The more games you play the more accurately the AI ' +
-			'will be able to fire.');
+		alert('Congratulations, you win!');
 		Game.gameOver = true;
 		Game.stats.wonGame();
 		Game.stats.syncStats();
 		Game.stats.updateStatsSidebar();
-		this.resetFogOfWar();
-		this.init();
+		this.showRestartSidebar();
 	} else if (this.humanFleet.allShipsSunk()) {
 		alert('Yarr! The computer sank all your ships. Try again.');
 		Game.gameOver = true;
 		Game.stats.lostGame();
 		Game.stats.syncStats();
 		Game.stats.updateStatsSidebar();
-		this.resetFogOfWar();
-		this.init();
+		this.showRestartSidebar();
 	}
 };
 // Shoots at the target player on the grid.
@@ -386,7 +378,7 @@ Game.prototype.toggleRotation = function(e) {
 // Click handler for the Start Game button
 Game.prototype.startGame = function(e) {
 	var self = e.target.self;
-	var el = document.getElementById('sidebar-left');
+	var el = document.getElementById('roster-sidebar');
 	var fn = function() {el.setAttribute('class', 'hidden');};
 	el.addEventListener(transitionEndEventName(),fn,false);
 	el.setAttribute('class', 'invisible');
@@ -396,16 +388,23 @@ Game.prototype.startGame = function(e) {
 	if (gameTutorial.currentStep === 3) {
 		gameTutorial.nextStep();
 	}
-
 	el.removeEventListener(transitionEndEventName(),fn,false);
+};
+// Click handler for Restart Game button
+Game.prototype.restartGame = function(e) {
+	e.target.removeEventListener(e.type, arguments.callee);
+	var self = e.target.self;
+	document.getElementById('restart-sidebar').setAttribute('class', 'hidden');
+	self.resetFogOfWar();
+	self.init();
 };
 // Debugging function used to place all ships and just start
 Game.prototype.placeRandomly = function(e){
+	e.target.removeEventListener(e.type, arguments.callee);
 	e.target.self.humanFleet.placeShipsRandomly();
 	e.target.self.readyToPlay = true
-	document.getElementById('sidebar-left').setAttribute('class', 'hidden');
+	document.getElementById('roster-sidebar').setAttribute('class', 'hidden');
 	this.setAttribute('class', 'hidden');
-	e.target.removeEventListener(e.type, arguments.callee);
 };
 // Ends placing the current ship
 Game.prototype.endPlacing = function(shipType) {
@@ -451,13 +450,31 @@ Game.prototype.resetRosterSidebar = function() {
 	if (gameTutorial.showTutorial) {
 		gameTutorial.nextStep();
 	} else {
-		document.getElementById('sidebar-left').removeAttribute('class');
+		document.getElementById('roster-sidebar').removeAttribute('class');
 	}
 	document.getElementById('rotate-button').removeAttribute('class');
 	document.getElementById('start-game').setAttribute('class', 'hidden');
 	if (DEBUG_MODE) {
 		document.getElementById('place-randomly').removeAttribute('class');
 	}
+};
+Game.prototype.showRestartSidebar = function() {
+	var sidebar = document.getElementById('restart-sidebar');
+	sidebar.setAttribute('class', 'highlight');
+
+	// Deregister listeners
+	var computerCells = document.querySelector('.computer-player').childNodes;
+	for (var j = 0; j < computerCells.length; j++) {
+		computerCells[j].removeEventListener('click', this.shootListener, false);
+	}
+	var playerRoster = document.querySelector('.fleet-roster').querySelectorAll('li');
+	for (var i = 0; i < playerRoster.length; i++) {
+		playerRoster[i].removeEventListener('click', this.rosterListener, false);
+	}
+
+	var restartButton = document.getElementById('restart-game');
+	restartButton.addEventListener('click', this.restartGame, false);
+	restartButton.self = this;
 };
 // Generates the HTML divs for the grid for both players
 Game.prototype.createGrid = function() {
@@ -871,12 +888,12 @@ Tutorial.prototype.nextStep = function() {
 	var computerGrid = document.querySelector('.computer-player');
 	switch (this.currentStep) {
 		case 0:
-			document.getElementById('sidebar-left').setAttribute('class', 'highlight');
+			document.getElementById('roster-sidebar').setAttribute('class', 'highlight');
 			document.getElementById('step1').setAttribute('class', 'current-step');
 			this.currentStep++;
 			break;
 		case 1:
-			document.getElementById('sidebar-left').removeAttribute('class');
+			document.getElementById('roster-sidebar').removeAttribute('class');
 			document.getElementById('step1').removeAttribute('class');
 			humanGrid.setAttribute('class', humanGrid.getAttribute('class') + ' highlight');
 			document.getElementById('step2').setAttribute('class', 'current-step');

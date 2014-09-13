@@ -39,15 +39,15 @@ button {
 	button:active {
 		background-color: #99C2E1;
 	}
-	#start-game, #place-randomly {
+	#start-game, #place-randomly, #restart-game {
 		position: relative;
 		color: #FFFFFF;
 		background-color: #FF9200;
 	}
-		#start-game:hover, #place-randomly:hover {
+		#start-game:hover, #place-randomly:hover, #restart-game:hover {
 			background-color: #FFB655;
 		}
-		#start-game:active, #place-randomly:active {
+		#start-game:active, #place-randomly:active, #restart-game:active {
 			background-color: #FFCE8E;
 		}
 
@@ -83,7 +83,7 @@ button {
 .game-container {
 	position: relative;
 }
-	#sidebar-left, #sidebar-right {
+	#roster-sidebar, #stats-sidebar, #restart-sidebar {
 		width: 150px;
 		padding: 20px;
 		margin: 0;
@@ -94,13 +94,13 @@ button {
 		-moz-border-radius: 5px;
 		border-radius: 5px;
 	}
-	#sidebar-left {
+	#roster-sidebar, #restart-sidebar {
 		left: -200px;
 	}
-	#sidebar-right {
+	#stats-sidebar {
 		right: -200px;
 	}
-		#sidebar-left h2, #sidebar-right h2 {
+		#roster-sidebar h2, #stats-sidebar h2, #restart-sidebar h2 {
 			margin: 0 0 1em 0;
 			text-align: center;
 		}
