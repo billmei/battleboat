@@ -39,15 +39,21 @@ button {
 	button:active {
 		background-color: #99C2E1;
 	}
-	#start-game, #place-randomly, #restart-game {
+	#start-game,
+	#place-randomly,
+	#restart-game {
 		position: relative;
 		color: #FFFFFF;
 		background-color: #FF9200;
 	}
-		#start-game:hover, #place-randomly:hover, #restart-game:hover {
+		#start-game:hover,
+		#place-randomly:hover,
+		#restart-game:hover {
 			background-color: #FFB655;
 		}
-		#start-game:active, #place-randomly:active, #restart-game:active {
+		#start-game:active,
+		#place-randomly:active,
+		#restart-game:active {
 			background-color: #FFCE8E;
 		}
 
@@ -140,6 +146,7 @@ button {
 		-webkit-transition: opacity 0.5s ease-in;
 		-o-transition: opacity 0.5s ease-in;
 		transition: opacity 0.5s ease-in;
+		z-index: -20;
 	}
 	.hidden {
 		display: none;

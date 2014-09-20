@@ -402,7 +402,7 @@ Game.prototype.restartGame = function(e) {
 Game.prototype.placeRandomly = function(e){
 	e.target.removeEventListener(e.type, arguments.callee);
 	e.target.self.humanFleet.placeShipsRandomly();
-	e.target.self.readyToPlay = true
+	e.target.self.readyToPlay = true;
 	document.getElementById('roster-sidebar').setAttribute('class', 'hidden');
 	this.setAttribute('class', 'hidden');
 };
@@ -989,7 +989,7 @@ AI.prototype.shoot = function() {
 		if (this.probGrid[cell.x][cell.y] !== 0) {
 			this.probGrid[cell.x][cell.y] += cell.weight;
 		}
-	};
+	}
 
 	for (var x = 0; x < Game.size; x++) {
 		for (var y = 0; y < Game.size; y++) {
