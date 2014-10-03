@@ -42,6 +42,11 @@ CONST.TYPE_MISS = 2; // 2 = water with a cannonball in it (missed shot)
 CONST.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
 CONST.TYPE_SUNK = 4; // 4 = sunk ship
 
+// These numbers correspond to CONST.AVAILABLE_SHIPS
+// 0) 'carrier' 1) 'battleship' 2) 'destroyer' 3) 'submarine' 4) 'patrolboat'
+// 0 is not used; 1 is used.
+var usedShips = [0, 0, 0, 0, 0];
+
 // Game Statistics
 function Stats(){
 	this.shotsTaken = 0;
@@ -409,6 +414,29 @@ Game.prototype.placeRandomly = function(e){
 // Ends placing the current ship
 Game.prototype.endPlacing = function(shipType) {
 	document.getElementById(shipType).setAttribute('class', 'placed');
+	
+	//finds which part of the array shipType corresponds to and sets the value to 1 (used)
+	switch (shipType) {
+		case "patrolboat":
+			usedShips[4] = 1;
+			break;
+		case "submarine":
+			usedShips[3] = 1;
+			break;
+		case "destroyer":
+			usedShips[2] = 1;
+			break;
+		case "battleship":
+			usedShips[1] = 1;
+			break;
+		case "carrier":
+			usedShips[0] = 1;
+			break;
+		default:
+			// Should never be called
+			console.log("There was an error trying to find the ship that should be marked as placed");
+	}
+			
 	// Wipe out the variable when you're done with it
 	Game.placeShipDirection = null;
 	Game.placeShipType = '';
@@ -438,6 +466,8 @@ Game.prototype.resetFogOfWar = function() {
 			this.humanGrid.updateCell(i, j, 'empty', CONST.HUMAN_PLAYER);
 			this.computerGrid.updateCell(i, j, 'empty', CONST.COMPUTER_PLAYER);
 		}
+	//resets all values to 0 (not used) to indicate the ships are ready to be placed again
+	usedShips = [0, 0, 0, 0, 0];
 	}
 };
 // Resets CSS styling of the sidebar
@@ -665,11 +695,18 @@ Fleet.prototype.placeShip = function(x, y, direction, shipType) {
 Fleet.prototype.placeShipsRandomly = function() {
 	var shipCoords;
 	for (var i = 0; i < this.fleetRoster.length; i++) {
-		var illegalPlacement = true;
+	
+		//prevents the random placement of already placed ships
+		if(this.player === CONST.HUMAN_PLAYER && usedShips[i] === 1) {
+			var illegalPlacement = false;
+		} else {
+			var illegalPlacement = true;
+		}
 		while (illegalPlacement) {
 			var randomX = Math.floor(10*Math.random());
 			var randomY = Math.floor(10*Math.random());
 			var randomDirection = Math.floor(2*Math.random());
+			
 			if (this.fleetRoster[i].isLegal(randomX, randomY, randomDirection)) {
 				this.fleetRoster[i].create(randomX, randomY, randomDirection, false);
 				shipCoords = this.fleetRoster[i].getAllShipCells();
@@ -678,9 +715,10 @@ Fleet.prototype.placeShipsRandomly = function() {
 				continue;
 			}
 		}
-		if (this.player === CONST.HUMAN_PLAYER) {
+		if (this.player === CONST.HUMAN_PLAYER && usedShips != 1) {
 			for (var j = 0; j < shipCoords.length; j++) {
 				this.playerGrid.updateCell(shipCoords[j].x, shipCoords[j].y, 'ship', this.player);
+				usedShips[i] = 1;
 			}
 		}
 	}
