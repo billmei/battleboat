@@ -715,7 +715,7 @@ Fleet.prototype.placeShipsRandomly = function() {
 				continue;
 			}
 		}
-		if (this.player === CONST.HUMAN_PLAYER && usedShips != 1) {
+		if (this.player === CONST.HUMAN_PLAYER && usedShips[i] != 1) {
 			for (var j = 0; j < shipCoords.length; j++) {
 				this.playerGrid.updateCell(shipCoords[j].x, shipCoords[j].y, 'ship', this.player);
 				usedShips[i] = 1;
