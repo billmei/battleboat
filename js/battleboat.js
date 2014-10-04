@@ -43,7 +43,9 @@ CONST.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
 CONST.TYPE_SUNK = 4; // 4 = sunk ship
 
 // TODO: Make this better OO code. CONST.AVAILABLE_SHIPS should be an array
-//       of objects rather than than two parallel arrays.
+//       of objects rather than than two parallel arrays. Or, a better
+//       solution would be to store "USED" and "UNUSED" as properties of
+//       the individual ship object.
 // These numbers correspond to CONST.AVAILABLE_SHIPS
 // 0) 'carrier' 1) 'battleship' 2) 'destroyer' 3) 'submarine' 4) 'patrolboat'
 // This variable is only used when DEBUG_MODE === true.
