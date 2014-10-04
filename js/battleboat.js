@@ -42,10 +42,14 @@ CONST.TYPE_MISS = 2; // 2 = water with a cannonball in it (missed shot)
 CONST.TYPE_HIT = 3; // 3 = damaged ship (hit shot)
 CONST.TYPE_SUNK = 4; // 4 = sunk ship
 
+// TODO: Make this better OO code. CONST.AVAILABLE_SHIPS should be an array
+//       of objects rather than than two parallel arrays.
 // These numbers correspond to CONST.AVAILABLE_SHIPS
 // 0) 'carrier' 1) 'battleship' 2) 'destroyer' 3) 'submarine' 4) 'patrolboat'
-// 0 is not used; 1 is used.
-var usedShips = [0, 0, 0, 0, 0];
+// This variable is only used when DEBUG_MODE === true.
+Game.usedShips = [CONST.UNUSED, CONST.UNUSED, CONST.UNUSED, CONST.UNUSED, CONST.UNUSED];
+CONST.USED = 1;
+CONST.UNUSED = 0;
 
 // Game Statistics
 function Stats(){
@@ -415,28 +419,9 @@ Game.prototype.placeRandomly = function(e){
 Game.prototype.endPlacing = function(shipType) {
 	document.getElementById(shipType).setAttribute('class', 'placed');
 	
-	//finds which part of the array shipType corresponds to and sets the value to 1 (used)
-	switch (shipType) {
-		case "patrolboat":
-			usedShips[4] = 1;
-			break;
-		case "submarine":
-			usedShips[3] = 1;
-			break;
-		case "destroyer":
-			usedShips[2] = 1;
-			break;
-		case "battleship":
-			usedShips[1] = 1;
-			break;
-		case "carrier":
-			usedShips[0] = 1;
-			break;
-		default:
-			// Should never be called
-			console.log("There was an error trying to find the ship that should be marked as placed");
-	}
-			
+	// Mark the ship as 'used'
+	Game.usedShips[CONST.AVAILABLE_SHIPS.indexOf(shipType)] = CONST.USED;
+
 	// Wipe out the variable when you're done with it
 	Game.placeShipDirection = null;
 	Game.placeShipType = '';
@@ -466,9 +451,9 @@ Game.prototype.resetFogOfWar = function() {
 			this.humanGrid.updateCell(i, j, 'empty', CONST.HUMAN_PLAYER);
 			this.computerGrid.updateCell(i, j, 'empty', CONST.COMPUTER_PLAYER);
 		}
-	//resets all values to 0 (not used) to indicate the ships are ready to be placed again
-	usedShips = [0, 0, 0, 0, 0];
 	}
+	// Reset all values to indicate the ships are ready to be placed again
+	Game.usedShips = Game.usedShips.map(function(){return CONST.UNUSED;});
 };
 // Resets CSS styling of the sidebar
 Game.prototype.resetRosterSidebar = function() {
@@ -695,12 +680,11 @@ Fleet.prototype.placeShip = function(x, y, direction, shipType) {
 Fleet.prototype.placeShipsRandomly = function() {
 	var shipCoords;
 	for (var i = 0; i < this.fleetRoster.length; i++) {
+		var illegalPlacement = true;
 	
-		//prevents the random placement of already placed ships
-		if(this.player === CONST.HUMAN_PLAYER && usedShips[i] === 1) {
-			var illegalPlacement = false;
-		} else {
-			var illegalPlacement = true;
+		// Prevents the random placement of already placed ships
+		if(this.player === CONST.HUMAN_PLAYER && Game.usedShips[i] === CONST.USED) {
+			continue;
 		}
 		while (illegalPlacement) {
 			var randomX = Math.floor(10*Math.random());
@@ -715,10 +699,10 @@ Fleet.prototype.placeShipsRandomly = function() {
 				continue;
 			}
 		}
-		if (this.player === CONST.HUMAN_PLAYER && usedShips[i] != 1) {
+		if (this.player === CONST.HUMAN_PLAYER && Game.usedShips[i] !== CONST.USED) {
 			for (var j = 0; j < shipCoords.length; j++) {
 				this.playerGrid.updateCell(shipCoords[j].x, shipCoords[j].y, 'ship', this.player);
-				usedShips[i] = 1;
+				Game.usedShips[i] = CONST.USED;
 			}
 		}
 	}
@@ -1256,6 +1240,98 @@ if (!Array.prototype.indexOf) {
 			k++;
 		}
 		return -1;
+	};
+}
+
+// Array.prototype.map workaround for IE browsers that don't support it
+// From MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
+// Production steps of ECMA-262, Edition 5, 15.4.4.19
+// Reference: http://es5.github.io/#x15.4.4.19
+if (!Array.prototype.map) {
+
+	Array.prototype.map = function(callback, thisArg) {
+
+		var T, A, k;
+
+		if (this == null) {
+			throw new TypeError(" this is null or not defined");
+		}
+
+		// 1. Let O be the result of calling ToObject passing the |this| 
+		//    value as the argument.
+		var O = Object(this);
+
+		// 2. Let lenValue be the result of calling the Get internal 
+		//    method of O with the argument "length".
+		// 3. Let len be ToUint32(lenValue).
+		var len = O.length >>> 0;
+
+		// 4. If IsCallable(callback) is false, throw a TypeError exception.
+		// See: http://es5.github.com/#x9.11
+		if (typeof callback !== "function") {
+			throw new TypeError(callback + " is not a function");
+		}
+
+		// 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
+		if (arguments.length > 1) {
+			T = thisArg;
+		}
+
+		// 6. Let A be a new array created as if by the expression new Array(len) 
+		//    where Array is the standard built-in constructor with that name and 
+		//    len is the value of len.
+		A = new Array(len);
+
+		// 7. Let k be 0
+		k = 0;
+
+		// 8. Repeat, while k < len
+		while (k < len) {
+
+			var kValue, mappedValue;
+
+			// a. Let Pk be ToString(k).
+			//   This is implicit for LHS operands of the in operator
+			// b. Let kPresent be the result of calling the HasProperty internal 
+			//    method of O with argument Pk.
+			//   This step can be combined with c
+			// c. If kPresent is true, then
+			if (k in O) {
+
+				// i. Let kValue be the result of calling the Get internal 
+				//    method of O with argument Pk.
+				kValue = O[k];
+
+				// ii. Let mappedValue be the result of calling the Call internal 
+				//     method of callback with T as the this value and argument 
+				//     list containing kValue, k, and O.
+				mappedValue = callback.call(T, kValue, k, O);
+
+				// iii. Call the DefineOwnProperty internal method of A with arguments
+				// Pk, Property Descriptor 
+				// { Value: mappedValue, 
+				//   Writable: true, 
+				//   Enumerable: true, 
+				//   Configurable: true },
+				// and false.
+
+				// In browsers that support Object.defineProperty, use the following:
+				// Object.defineProperty(A, k, { 
+				//   value: mappedValue, 
+				//   writable: true, 
+				//   enumerable: true, 
+				//   configurable: true 
+				// });
+
+				// For best browser support, use the following:
+				A[k] = mappedValue;
+			}
+			// d. Increase k by 1.
+			k++;
+		}
+
+		// 9. return A
+		return A;
 	};
 }
 
