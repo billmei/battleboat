@@ -1,7 +1,7 @@
 battleboat
 ==========
 
-An AI written in JavaScript that plays battleship.
+A JavaScript AI that beats humans at battleship.
 
 Play the game here: [http://kortaggio.github.io/battleboat](http://kortaggio.github.io/battleboat)
 
