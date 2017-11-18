@@ -689,8 +689,8 @@ Fleet.prototype.placeShipsRandomly = function() {
 			continue;
 		}
 		while (illegalPlacement) {
-			var randomX = Math.floor(10*Math.random());
-			var randomY = Math.floor(10*Math.random());
+			var randomX = Math.floor(Game.size * Math.random());
+			var randomY = Math.floor(Game.size * Math.random());
 			var randomDirection = Math.floor(2*Math.random());
 			
 			if (this.fleetRoster[i].isLegal(randomX, randomY, randomDirection)) {
