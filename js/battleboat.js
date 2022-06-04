@@ -76,13 +76,13 @@ Stats.prototype.wonGame = function() {
 	this.gamesPlayed++;
 	this.gamesWon++;
 	if (!DEBUG_MODE) {
-		ga('send', 'event', 'gameOver', 'win', this.uuid);
+		gtag('event', 'gameOver', {'win': this.uuid});
 	}
 };
 Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
 	if (!DEBUG_MODE) {
-		ga('send', 'event', 'gameOver', 'lose', this.uuid);
+		gtag('event', 'gameOver', {'lose': this.uuid});
 	}
 };
 // Saves the game statistics to localstorage, also uploads where the user placed
@@ -111,7 +111,7 @@ Stats.prototype.syncStats = function() {
 	}
 
 	if (!DEBUG_MODE) {
-		ga('send', 'event', 'humanGrid', stringifiedGrid, this.uuid);
+		gtag('event', 'humanGrid', {stringifiedGrid: this.uuid});
 	}
 };
 // Updates the sidebar display with the current statistics
