@@ -11,12 +11,7 @@
 //       finished placing their ships, or she can cheat easily by placing her ships
 //       outside the regions with the highest probability.
 
-console.log("%cHi! Thanks for checking out this game.%c Please be nice and don't " +
-	"hack the Stats object, I'm using Google Analytics to collect info about " +
-	"the AI's win/loss percentage in order to improve the bot, so if you do " +
-	"look around, I kindly ask that you don't give it bad data. Thanks :)",
-	"font-weight: bold; font-family: Tahoma, Helvetica, Arial, sans-serif;", "");
-console.log("Also, if you want to try stuff out, run %csetDebug(true);%c in the " +
+console.log("If you want to try stuff out, run %csetDebug(true);%c in the " +
 	"console before doing anything. You'll also get access to some cool features.",
 	"background: #000; color: #0f0; padding: 2px 5px; border-radius: 2px;", "");
 
@@ -75,18 +70,12 @@ Stats.prototype.hitShot = function() {
 Stats.prototype.wonGame = function() {
 	this.gamesPlayed++;
 	this.gamesWon++;
-	if (!DEBUG_MODE) {
-		gtag('event', 'gameOver', {'win': this.uuid});
-	}
 };
 Stats.prototype.lostGame = function() {
 	this.gamesPlayed++;
-	if (!DEBUG_MODE) {
-		gtag('event', 'gameOver', {'lose': this.uuid});
-	}
 };
 // Saves the game statistics to localstorage, also uploads where the user placed
-// their ships to Google Analytics so that in the future I'll be able to see
+// their ships to GA so that in the future I'll be able to see
 // which cells humans are disproportionately biased to place ships on.
 Stats.prototype.syncStats = function() {
 	if(!this.skipCurrentGame) {
@@ -108,10 +97,6 @@ Stats.prototype.syncStats = function() {
 		for (var y = 0; y < Game.size; y++) {
 			stringifiedGrid += '(' + x + ',' + y + '):' + mainGame.humanGrid.cells[x][y] + ';\n';
 		}
-	}
-
-	if (!DEBUG_MODE) {
-		gtag('event', 'humanGrid', {stringifiedGrid: this.uuid});
 	}
 };
 // Updates the sidebar display with the current statistics
