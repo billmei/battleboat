@@ -16,6 +16,7 @@ console.log("If you want to try stuff out, run %csetDebug(true);%c in the " +
 	"background: #000; color: #0f0; padding: 2px 5px; border-radius: 2px;", "");
 
 // Global Constants
+var DEBUG_MODE = localStorage.getItem('DEBUG_MODE') === 'true';
 var CONST = {};
 CONST.AVAILABLE_SHIPS = ['carrier', 'battleship', 'destroyer', 'submarine', 'patrolboat'];
 // You are player 0 and the computer is player 1
